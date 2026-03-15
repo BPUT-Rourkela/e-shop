@@ -1,0 +1,23 @@
+# Common
+node_modules/
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Backend
+backend/node_modules/
+backend/.env
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Dependency directories
+/.pnp
+.pnp.js
