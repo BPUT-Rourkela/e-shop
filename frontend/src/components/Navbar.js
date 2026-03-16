@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, LogIn, ShieldCheck, Home as HomeIcon } from 'lucide-react';
+import { ShoppingCart, LogIn, ShieldCheck, Home as HomeIcon, User } from 'lucide-react';
 
 function Navbar() {
   return (
@@ -15,12 +15,23 @@ function Navbar() {
           <Link to="/" className="flex items-center gap-1 hover:text-teal-300 transition-colors">
             <HomeIcon size={18} /> Home
           </Link>
-          <Link to="/login" className="flex items-center gap-1 hover:text-teal-300 transition-colors">
-            <LogIn size={18} /> Login
-          </Link>
-          <Link to="/admin" className="flex items-center gap-1 hover:text-teal-300 transition-colors">
-            <ShieldCheck size={18} /> Admin
-          </Link>
+          
+          {localStorage.getItem('token') ? (
+            <>
+              <Link to="/profile" className="flex items-center gap-1 hover:text-teal-300 transition-colors">
+                <User size={18} /> Profile
+              </Link>
+              {localStorage.getItem('role') === 'admin' && (
+                <Link to="/admin" className="flex items-center gap-1 hover:text-teal-300 transition-colors">
+                  <ShieldCheck size={18} /> Admin
+                </Link>
+              )}
+            </>
+          ) : (
+            <Link to="/login" className="flex items-center gap-1 hover:text-teal-300 transition-colors">
+              <LogIn size={18} /> Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>
