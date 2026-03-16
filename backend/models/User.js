@@ -9,6 +9,26 @@ const UserSchema = new mongoose.Schema({
     enum: ['customer', 'admin'], 
     default: 'customer' 
   },
+  phone: { type: String },
+  dob: { type: Date },
+  gender: { type: String },
+  profilePicture: { type: String },
+  addresses: [{
+    name: String,
+    phone: String,
+    house: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    type: { type: String, enum: ['Home', 'Office', 'Other'], default: 'Home' },
+    isDefault: { type: Boolean, default: false }
+  }],
+  paymentMethods: [{
+    type: { type: String, enum: ['Card', 'UPI', 'NetBanking', 'Wallet'] },
+    details: String, // e.g., masked card num or UPI ID
+    isDefault: { type: Boolean, default: false }
+  }],
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   createdAt: { type: Date, default: Date.now }
 });
 
