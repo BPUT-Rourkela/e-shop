@@ -9,7 +9,8 @@ const OrderSchema = new mongoose.Schema({
     }
   ],
   totalAmount: { type: Number, required: true },
-  status: { type: String, default: 'Pending' }, // For tracking orders 
+  status: { type: String, default: 'Pending', enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] },
+  paymentMethod: { type: String, default: 'COD' },
   createdAt: { type: Date, default: Date.now }
 });
 

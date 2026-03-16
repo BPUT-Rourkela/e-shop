@@ -14,6 +14,15 @@ const AdminRoute = ({ children }) => {
   return role === 'admin' ? children : <Navigate to="/" />;
 };
 
+// Only customers (logged-in, non-admin users) can access Profile
+const CustomerRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token) return <Navigate to="/login" />;
+  if (role === 'admin') return <Navigate to="/admin" />;
+  return children;
+};
+
 function App() {
   return (
     <Router>
@@ -21,7 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<CustomerRoute><Profile /></CustomerRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> 
         <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
         <Route path="/orders" element={<Orders />} />

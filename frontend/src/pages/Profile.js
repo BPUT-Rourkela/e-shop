@@ -31,6 +31,7 @@ const Profile = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    window.dispatchEvent(new Event('authChange'));
     navigate('/login');
   };
 

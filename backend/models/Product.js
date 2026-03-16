@@ -6,8 +6,9 @@ const ProductSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   category: { type: String, required: true }, // Content-based filtering later [cite: 39]
   image: { type: String },
-  isTrending: { type: Boolean, default: false }, // For Admin control [cite: 32]
+  isTrending: { type: Boolean, default: false },
   isRecommended: { type: Boolean, default: false },
+  purchaseCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

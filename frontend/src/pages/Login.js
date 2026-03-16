@@ -21,7 +21,10 @@ const Login = () => {
         const { data } = await login({ email: formData.email, password: formData.password });
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
+        // Notify Navbar to re-render
+        window.dispatchEvent(new Event('authChange'));
         navigate(data.user.role === 'admin' ? '/admin' : '/');
+
       } else {
         await register(formData);
         alert("Registration successful! Please login.");
