@@ -1,6 +1,6 @@
-# 🛍️ EcomStore — Full-Stack E-Commerce Platform
+# 🛍️ EcomStore — Full-Stack AI-Powered E-Commerce Platform
 
-A full-stack e-commerce web application built with **React** (frontend) and **Node.js/Express** (backend), using **MongoDB Atlas** as the database.
+A full-stack e-commerce web application built with **React** (frontend), **Node.js/Express** (backend), **MongoDB Atlas** (database), and a **Python FastAPI ML service** for personalized product recommendations and sentiment analysis.
 
 ---
 
@@ -9,7 +9,8 @@ A full-stack e-commerce web application built with **React** (frontend) and **No
 ```
 e-shop/
 ├── backend/        # Node.js + Express REST API
-└── frontend/       # React.js Single Page Application
+├── frontend/       # React.js Single Page Application
+└── ml/             # Python FastAPI — ML Recommendation & Sentiment Service
 ```
 
 ---
@@ -27,6 +28,7 @@ e-shop/
 | cors | ^2.8.6 | Cross-origin resource sharing |
 | helmet | ^8.1.0 | HTTP security headers |
 | morgan | ^1.10.1 | HTTP request logger |
+| axios | latest | Proxy requests to ML service |
 | nodemon | ^3.1.14 | Dev auto-restart |
 
 ### Setup
@@ -41,13 +43,14 @@ Create a `.env` file in `backend/`:
 PORT=5000
 MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/e-commerce?appName=Cluster0
 JWT_SECRET=your_jwt_secret_key
+ML_API_URL=http://127.0.0.1:8000
 ```
 
 > ⚠️ If your MongoDB password contains special characters (e.g. `@`), URL-encode them (e.g. `@` → `%40`).
 
 ```bash
 # Production
-npm start
+node server.js
 
 # Development (with auto-reload)
 npm run dev
@@ -70,7 +73,7 @@ Server runs on **http://localhost:5000**
 |--------|----------|-------------|------|
 | GET | `/products` | All products | Public |
 | GET | `/products/trending` | Trending products | Public |
-| GET | `/products/recommended` | Recommended products | Public |
+| GET | `/products/recommended` | Admin-curated recommended products | Public |
 | POST | `/products/add` | Add product | Admin |
 | PUT | `/products/:id` | Update product | Admin |
 | DELETE | `/products/:id` | Delete product | Admin |
@@ -81,7 +84,7 @@ Server runs on **http://localhost:5000**
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/orders` | Create new order | Customer |
-| GET | `/orders/myorders` | Get own orders | Customer |
+| GET | `/orders/myorders` | Get own orders (with product details) | Customer |
 
 #### 👤 User Profile (`/users`)
 | Method | Endpoint | Description | Auth |
@@ -100,7 +103,7 @@ Server runs on **http://localhost:5000**
 |--------|----------|-------------|------|
 | POST | `/reviews/add` | Submit a review | Customer |
 | GET | `/reviews/:productId` | Get reviews for a product | Public |
-| PATCH | `/reviews/:id/sentiment` | Override sentiment | Admin |
+| PATCH | `/reviews/:id/sentiment` | Override sentiment label | Admin |
 
 #### 🛠️ Admin (`/admin`)
 | Method | Endpoint | Description |
@@ -113,6 +116,19 @@ Server runs on **http://localhost:5000**
 | GET | `/admin/transactions` | All transactions |
 | GET | `/admin/analytics` | Top products, revenue by month, category distribution |
 | GET | `/admin/reviews` | All reviews for sentiment monitoring |
+
+#### 🤖 ML (`/ml`)
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/ml/recommend` | Get personalized product recommendations | Public |
+| POST | `/ml/analyze-sentiment` | Analyze sentiment of review text | Public |
+
+**Request body for `/ml/recommend`:**
+```json
+{
+  "product_texts": ["product name category description", "..."]
+}
+```
 
 ---
 
@@ -128,6 +144,53 @@ Server runs on **http://localhost:5000**
 
 ---
 
+## 🤖 ML Service (Python FastAPI)
+
+A standalone Python microservice that powers product recommendations and review sentiment analysis.
+
+### Tech Stack
+| Package | Purpose |
+|---------|---------|
+| FastAPI | Web framework |
+| scikit-learn | TF-IDF vectorizer + cosine similarity |
+| pandas / numpy | Data processing |
+| joblib | Model serialization |
+| uvicorn | ASGI server |
+
+### Setup
+
+```bash
+cd ml
+pip install -r requirements.txt
+```
+
+Train the models (only needed once, or when you want to retrain):
+```bash
+python train_recommendation.py   # Trains TF-IDF on Amazon product data
+python train_sentiment.py        # Trains sentiment classifier
+```
+
+Run the ML service:
+```bash
+python app.py
+```
+
+ML service runs on **http://127.0.0.1:8000**
+
+### How It Works
+
+**Recommendation Engine:**
+1. Trained on Amazon product catalogue using **TF-IDF** on product descriptions
+2. At runtime, accepts `product_texts` (names + categories + descriptions of recently purchased products)
+3. Uses **cosine similarity** to find the most semantically similar products
+4. Returns up to 12 ranked recommendations
+
+**Sentiment Analysis:**
+- Trained binary classifier (Positive / Negative / Neutral)
+- Automatically applied to new product reviews on submission
+
+---
+
 ## 🖥️ Frontend
 
 ### Tech Stack
@@ -137,6 +200,7 @@ Server runs on **http://localhost:5000**
 - **Recharts** — Data visualization charts
 - **Lucide React** — Icon library
 - **Tailwind CSS** — Utility-first styling
+- **Plus Jakarta Sans** — Premium typography (Google Fonts)
 
 ### Setup
 
@@ -146,7 +210,7 @@ npm install
 npm start
 ```
 
-Frontend runs on **http://localhost:3000**
+Frontend runs on **http://localhost:3001**
 
 ---
 
@@ -167,10 +231,21 @@ Frontend runs on **http://localhost:3000**
 ### Key Features
 
 #### 🏠 Home Page
-- **Trending Now** section — products marked as trending by admin (🔥 badge)
-- **Recommended For You** section — admin-curated recommendations (⭐ badge)
-- **Featured Products** — full product catalogue
-- **Search bar** in Navbar — filters by name, description, or category via URL query param (`?search=`)
+
+**For guests (not logged in):**
+- **🔥 Trending Now** — admin-marked trending products
+- **Best Sellers: Electronics** — top purchased electronics
+- **Best Selling: Kitchen** — top kitchen products
+- **Top Home Items** — top home category products
+- **Best Selling: Computer Accessories** — top computer accessories
+
+**For logged-in users with purchase history:**
+- **🧠 Recommended For You** — AI-powered section (dark galaxy gradient UI) shown at the top, personalized based on the user's purchase history using the ML model
+- All 4 category sections shown below it
+
+**Search:**
+- Search bar in Navbar filters products by name, description, or category via URL query (`?search=`)
+- AI-powered "Smart Match" recommendations shown below search results
 
 #### 👤 Customer Profile (`/profile`)
 Tabbed sidebar UI with:
@@ -187,14 +262,14 @@ Tabbed sidebar UI with:
 3. **Customers** — Customer list, click to view full purchase history
 4. **Transactions** — Revenue log per order with payment method
 5. **Products** — Full CRUD (add, edit, delete) + purchase count display
-6. **Recommendations** — Toggle `isTrending` / `isRecommended` per product (controls homepage sections)
-7. **Reviews & Sentiment** — Auto-classified reviews (Positive ≥4★, Negative ≤2★) + admin override
+6. **Recommendations** — Toggle `isTrending` / `isRecommended` per product
+7. **Reviews & Sentiment** — Auto-classified reviews + admin override
 8. **Analytics** — Revenue bar chart, category pie chart, top 5 products
 
 #### 🔔 Dynamic Navbar
 - Logged out → shows **Login**
 - Logged in as customer → shows **Profile** + **Logout**
-- Logged in as admin → shows **Admin** + **Logout** (no Profile link)
+- Logged in as admin → shows **Admin** + **Logout**
 
 ---
 
@@ -208,27 +283,21 @@ Tabbed sidebar UI with:
 
 ---
 
-## 📊 Recommendation System (ML Hook)
-
-The `isTrending` and `isRecommended` fields on the Product model are currently controlled manually via the Admin Dashboard → **Recommendations** tab.
-
-When the ML recommendation model is ready, integrate it by calling:
-```
-PATCH /products/:id/trending
-PATCH /products/:id/recommended
-```
-from your model output — the frontend will pick it up automatically.
-
----
-
 ## 🚀 Running the Full App
 
 ```bash
 # Terminal 1 — Backend
 cd backend && node server.js
 
-# Terminal 2 — Frontend  
+# Terminal 2 — ML Service
+cd ml && python app.py
+
+# Terminal 3 — Frontend
 cd frontend && npm start
 ```
 
-Visit **http://localhost:3000** to use the app.
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3001 |
+| Backend API | http://localhost:5000 |
+| ML Service | http://127.0.0.1:8000 |
