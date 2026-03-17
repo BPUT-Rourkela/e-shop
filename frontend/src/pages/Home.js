@@ -97,19 +97,39 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-teal-200">
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 text-white py-20 px-6 sm:px-12 lg:px-24 rounded-b-[3rem] shadow-2xl mb-12">
-        <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
+      <div
+        className="relative text-white overflow-hidden mb-12"
+        style={{ backgroundColor: '#0d1b2a', minHeight: 'calc(100vh - 64px)' }}
+      >
+        {/* Background image with fade */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=800&fit=crop')`,
+            opacity: 0.35,
+          }}
+        />
+        {/* Left-side dark overlay that fades to the right */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to right, #0d1b2a 40%, rgba(13,27,42,0.75) 65%, rgba(13,27,42,0.25) 100%)',
+          }}
+        />
+        {/* Content — left aligned */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 flex flex-col justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+          <p className="text-xs font-bold tracking-widest uppercase text-indigo-400 mb-5">New Collection</p>
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-2xl leading-tight">
             Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-300">Extraordinary</span> Products
           </h1>
-          <p className="text-lg md:text-2xl text-purple-200 mb-10 max-w-3xl">
+          <p className="text-base md:text-lg text-blue-200/75 mb-10 max-w-xl leading-relaxed">
             Experience the future of shopping. Curated items, securely delivered to your door with unparalleled speed.
           </p>
-          <div className="flex gap-4">
-            <button className="bg-teal-500 hover:bg-teal-400 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-teal-500/30 transition transform hover:-translate-y-1">
-              Shop Now
+          <div className="flex flex-wrap gap-4">
+            <button className="flex items-center gap-2 bg-white text-gray-900 px-7 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-md">
+              Shop Now <span className="text-base">→</span>
             </button>
-            <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-8 py-3 rounded-full font-bold transition">
+            <button className="flex items-center gap-2 bg-[#1a2e47] hover:bg-[#213655] border border-white/15 text-white px-7 py-3 rounded-lg font-semibold transition">
               Explore Deals
             </button>
           </div>
@@ -205,6 +225,47 @@ const Home = () => {
           </section>
         </div>
       )}
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white mt-8">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-10">
+            <div>
+              <h4 className="text-sm font-bold text-gray-800 mb-4">Products</h4>
+              <ul className="space-y-2">
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">All Products</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">New Arrivals</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Bestsellers</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-gray-800 mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">About</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Careers</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Press</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-gray-800 mb-4">Support</h4>
+              <ul className="space-y-2">
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Help Center</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Returns</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Shipping</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-gray-800 mb-4">Legal</h4>
+              <ul className="space-y-2">
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Privacy</a></li>
+                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Terms</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-100 pt-6">
+            <p className="text-sm text-gray-400">© {new Date().getFullYear()} EcomStore. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
