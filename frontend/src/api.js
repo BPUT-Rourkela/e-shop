@@ -53,4 +53,7 @@ export const fetchAdminTransactions = () => API.get('/admin/transactions');
 export const fetchAdminAnalytics = () => API.get('/admin/analytics');
 export const fetchAdminReviews = () => API.get('/admin/reviews');
 
+// ---- ML ----
+export const fetchMLRecommendations = (product_texts) => API.post('/ml/recommend', { product_texts });
+
 export default API;

@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
-import AdminAnalytics from './pages/AdminAnalytics';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
 
@@ -32,7 +31,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<CustomerRoute><Profile /></CustomerRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> 
-        <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
         <Route path="/orders" element={<Orders />} />
       </Routes>
     </Router>

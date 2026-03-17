@@ -21,3 +21,15 @@ frontend/.env.production.local
 # Dependency directories
 /.pnp
 .pnp.js
+
+# ML — raw data (large CSV, not needed in repo)
+amazon.csv
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+ml/venv/
+ml/.venv/
+venv/
+.venv/

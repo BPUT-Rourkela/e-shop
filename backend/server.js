@@ -18,6 +18,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const adminRoutes = require('./routes/adminRoutes'); // New admin routes
 const reviewRoutes = require('./routes/reviewRoutes'); // Setup review routes
 const userRoutes = require('./routes/userRoutes'); // Profile routes
+const mlRoutes = require('./routes/mlRoutes'); // ML routes
 
 app.use('/auth', authRoutes);
 app.use('/products', productRoutes);
@@ -25,6 +26,7 @@ app.use('/orders', orderRoutes);
 app.use('/admin', adminRoutes); // Mount admin routes
 app.use('/reviews', reviewRoutes); // Mount reviews
 app.use('/users', userRoutes); // Mount users profile
+app.use('/ml', mlRoutes); // Mount ML routes
 
 // Basic Route for testing
 app.get('/', (req, res) => res.send('E-commerce API Running'));

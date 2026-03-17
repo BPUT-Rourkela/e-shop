@@ -34,7 +34,7 @@ router.post('/', verifyToken, async (req, res) => {
 router.get('/my-orders', verifyToken, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
-      .populate('products.product', 'name price image')
+      .populate('products.product', 'name price image description category')
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
@@ -46,7 +46,7 @@ router.get('/my-orders', verifyToken, async (req, res) => {
 router.get('/myorders', verifyToken, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
-      .populate('products.product', 'name price image')
+      .populate('products.product', 'name price image description category')
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
