@@ -9,7 +9,7 @@ const Orders = () => {
   }, []);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 pt-24">
       <h1 className="text-2xl font-bold mb-6">Your Purchase History</h1>
       {orders.map(order => (
         <div key={order._id} className="border-b py-4 flex justify-between">

@@ -570,7 +570,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex pt-20">
       {/* Sidebar */}
       <aside className="w-64 bg-gradient-to-b from-indigo-900 to-purple-900 text-white flex flex-col shadow-2xl flex-shrink-0">
         <div className="p-6 border-b border-white/10">

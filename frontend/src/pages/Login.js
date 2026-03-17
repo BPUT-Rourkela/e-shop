@@ -38,7 +38,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-gray-50 flex items-center justify-center p-6 selection:bg-teal-200">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 pt-24 selection:bg-teal-200">
       <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden flex w-full max-w-5xl">
         
         {/* Decorative Side Panel */}

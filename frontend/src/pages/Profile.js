@@ -38,7 +38,7 @@ const Profile = () => {
   if (!profileData) return <div className="p-8 text-center text-gray-500">Loading profile...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-80px)]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 min-h-screen">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-8">My Account</h1>
       
       <div className="flex flex-col md:flex-row gap-8">

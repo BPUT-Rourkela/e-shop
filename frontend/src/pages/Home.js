@@ -99,7 +99,7 @@ const Home = () => {
       {/* Hero Section */}
       <div
         className="relative text-white overflow-hidden mb-12"
-        style={{ backgroundColor: '#0d1b2a', minHeight: 'calc(100vh - 64px)' }}
+        style={{ backgroundColor: '#0d1b2a', minHeight: '100vh' }}
       >
         {/* Background image with fade */}
         <div
@@ -117,7 +117,7 @@ const Home = () => {
           }}
         />
         {/* Content — left aligned */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 flex flex-col justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 flex flex-col justify-center" style={{ minHeight: '100vh' }}>
           <p className="text-xs font-bold tracking-widest uppercase text-indigo-400 mb-5">New Collection</p>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-2xl leading-tight">
             Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-300">Extraordinary</span> Products
