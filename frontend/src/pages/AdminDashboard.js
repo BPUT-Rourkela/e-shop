@@ -16,7 +16,7 @@ import {
   TrendingUp, Star, BarChart2, Trash2, Edit3, Check, X,
   ThumbsUp, ThumbsDown, Minus, RefreshCw,LogOut
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
 
@@ -315,7 +315,7 @@ const ProductsTab = ({ products, setProducts }) => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 text-sm"
             />
             <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition text-sm">
+              <button type="submit" className="flex-1 bg-[#0d1b2a] text-white font-bold py-3 rounded-xl hover:bg-[#1a2e47] transition text-sm">
                 {editId ? 'Update' : 'Add Product'}
               </button>
               {editId && (
@@ -353,6 +353,9 @@ const ProductsTab = ({ products, setProducts }) => {
 
 // ========== RECOMMENDATIONS TAB ==========
 const RecommendationsTab = ({ products, setProducts }) => {
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search')?.toLowerCase() || '';
+
   const handleToggle = async (id, type) => {
     try {
       const fn = type === 'trending' ? toggleTrending : toggleRecommended;
@@ -371,14 +374,19 @@ const RecommendationsTab = ({ products, setProducts }) => {
     </button>
   );
 
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery) || 
+    p.category.toLowerCase().includes(searchQuery)
+  );
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Recommendation Control</h2>
+        <h2 className="text-xl font-bold text-gray-800">Recommendation Control ({filteredProducts.length})</h2>
         <p className="text-sm text-gray-400">Toggle which products appear in Trending & Recommended sections on the homepage</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {products.map(p => (
+        {filteredProducts.map(p => (
           <div key={p._id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex items-start gap-4">
             <img src={p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=60&q=80'} alt={p.name} className="h-16 w-16 rounded-xl object-cover flex-shrink-0" />
             <div className="flex-grow min-w-0">
@@ -531,7 +539,10 @@ const AnalyticsTab = ({ analytics }) => {
 
 // ========== MAIN ADMIN DASHBOARD ==========
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+  const setActiveTab = (tab) => setSearchParams({ tab });
+
   const [stats, setStats] = useState(null);
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -539,6 +550,7 @@ const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -570,37 +582,66 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex pt-20">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-indigo-900 to-purple-900 text-white flex flex-col shadow-2xl flex-shrink-0">
-        <div className="p-6 border-b border-white/10">
-          <h1 className="text-xl font-extrabold">Admin Portal</h1>
-          <p className="text-white/50 text-xs mt-1">EcomStore Management</p>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar — Optimized transition for maximum smoothness */}
+      <aside 
+        onMouseEnter={() => setIsSidebarHovered(true)}
+        onMouseLeave={() => setIsSidebarHovered(false)}
+        className={`fixed left-0 top-0 z-40 h-screen bg-[#0d1b2a] text-white flex flex-col shadow-2xl transition-all duration-300 ease-in-out overflow-hidden ${isSidebarHovered ? 'w-64' : 'w-20'}`}
+      >
+        <div className="p-6 border-b border-white/10 whitespace-nowrap overflow-hidden">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center flex-shrink-0">
+              <LayoutDashboard size={20} />
+            </div>
+            <div className={`transition-all duration-300 transform ${isSidebarHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
+              <h1 className="text-xl font-extrabold leading-tight">Admin Portal</h1>
+              <p className="text-white/50 text-[10px] mt-0.5">EcomStore Management</p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-grow p-4 space-y-1">
+
+        <nav className="flex-grow p-4 space-y-2">
           {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-white/20 text-white shadow-inner' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === tab.id 
+                  ? 'bg-white/20 text-white shadow-inner' 
+                  : 'text-white/60 hover:bg-white/10 hover:text-white'
+                }`}
               >
-                <Icon size={18} />
-                {tab.label}
+                <div className="flex-shrink-0">
+                  <Icon size={22} className={activeTab === tab.id ? 'text-teal-400' : ''} />
+                </div>
+                <span className={`transition-all duration-300 whitespace-nowrap ${
+                  activeTab === tab.id ? 'font-bold' : ''
+                } ${isSidebarHovered ? 'opacity-100' : 'opacity-0'}`}>
+                  {tab.label}
+                </span>
               </button>
             );
           })}
         </nav>
+
         <div className="p-4 border-t border-white/10">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition">
-            <LogOut size={18} /> Logout
+          <button 
+            onClick={handleLogout} 
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition group/logout"
+          >
+            <div className="flex-shrink-0 group-hover/logout:text-red-400">
+              <LogOut size={22} />
+            </div>
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarHovered ? 'opacity-100' : 'opacity-0'}`}>Logout</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-grow p-8 overflow-auto">
+      {/* Main Content — Shifting sync'd with sidebar transition */}
+      <main className={`flex-grow p-8 pt-28 transition-all duration-300 ease-in-out overflow-auto ${isSidebarHovered ? 'ml-64' : 'ml-20'}`}>
         <h2 className="text-3xl font-extrabold text-gray-900 mb-8 capitalize">
           {tabs.find(t => t.id === activeTab)?.label}
         </h2>

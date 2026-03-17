@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ShoppingCart, LogIn, LogOut, ShieldCheck, Home as HomeIcon, User, Search } from 'lucide-react';
 
 function Navbar() {
@@ -9,7 +9,10 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
   const isHomePage = location.pathname === '/';
+  const isRecommendationsTab = location.pathname === '/admin' && urlSearchParams.get('tab') === 'recommendations';
+  const showSearch = isHomePage || isRecommendationsTab;
 
   // Auth sync
   useEffect(() => {
@@ -40,14 +43,20 @@ function Navbar() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    const query = searchQuery.trim();
+    if (isRecommendationsTab) {
+      // Local search within Admin Recommendations
+      setUrlSearchParams({ tab: 'recommendations', search: query });
     } else {
-      navigate('/');
+      // Global search on Home page
+      if (query) {
+        navigate(`/?search=${encodeURIComponent(query)}`);
+      } else {
+        navigate('/');
+      }
     }
   };
 
-  // On non-home pages, we force the "scrolled" (dark) look so it's visible against white backgrounds
   const isDarkActive = scrolled || !isHomePage;
 
   const floatBg = isDarkActive
@@ -67,7 +76,7 @@ function Navbar() {
     /* Outer wrapper — fixed, full width, provides the top padding for floating effect */
     <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-3 pointer-events-none">
       <nav
-        className={`pointer-events-auto rounded-2xl transition-all duration-300 mx-auto max-w-6xl ${floatBg}`}
+        className={`pointer-events-auto rounded-2xl transition-all duration-300 mx-auto ${isHomePage ? 'max-w-6xl' : 'max-w-2xl'} ${floatBg}`}
       >
         <div className="px-5 py-3 flex flex-wrap justify-between items-center gap-3">
 
@@ -80,25 +89,27 @@ function Navbar() {
             <span>EcomStore</span>
           </Link>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex-grow max-w-md">
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className={`w-full pl-4 pr-10 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-teal-400/60 transition-all text-sm ${searchBg}`}
-              />
-              <button
-                type="submit"
-                className="absolute right-3 text-white/60 hover:text-teal-300 transition-colors"
-                aria-label="Search"
-              >
-                <Search size={16} />
-              </button>
-            </div>
-          </form>
+          {/* Search Bar — Visible on Home Page and Admin Recommendations */}
+          {showSearch && (
+            <form onSubmit={handleSearch} className="flex-grow max-w-md">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search products..."
+                  className={`w-full pl-4 pr-10 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-teal-400/60 transition-all text-sm ${searchBg}`}
+                />
+                <button
+                  type="submit"
+                  className="absolute right-3 text-white/60 hover:text-teal-300 transition-colors"
+                  aria-label="Search"
+                >
+                  <Search size={16} />
+                </button>
+              </div>
+            </form>
+          )}
 
           {/* Nav Links */}
           <div className={`flex items-center space-x-4 font-medium flex-shrink-0 text-sm ${textColor}`}>
