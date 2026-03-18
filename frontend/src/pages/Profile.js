@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, MapPin, Package, Heart, CreditCard, LogOut } from 'lucide-react';
 import PersonalInfo from '../components/Profile/PersonalInfo';
 import Addresses from '../components/Profile/Addresses';
 import MyOrders from '../components/Profile/MyOrders';
 import Wishlist from '../components/Profile/Wishlist';
-import PaymentMethods from '../components/Profile/PaymentMethods';
+import Cart from '../components/Profile/Cart';
 import { getUserProfile } from '../api';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('personal');
   const [profileData, setProfileData] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [location]);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -70,8 +79,8 @@ const Profile = () => {
               <button onClick={() => setActiveTab('wishlist')} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'wishlist' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
                 <Heart size={18} /> Wishlist
               </button>
-              <button onClick={() => setActiveTab('payments')} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'payments' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <CreditCard size={18} /> Payment Methods
+              <button onClick={() => setActiveTab('cart')} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'cart' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
+                <Package size={18} /> My Cart
               </button>
               <div className="border-t border-gray-100 my-2"></div>
               <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
@@ -87,7 +96,7 @@ const Profile = () => {
           {activeTab === 'addresses' && <Addresses addresses={profileData.addresses || []} refreshProfile={fetchProfile} />}
           {activeTab === 'orders' && <MyOrders />}
           {activeTab === 'wishlist' && <Wishlist wishlist={profileData.wishlist || []} refreshProfile={fetchProfile} />}
-          {activeTab === 'payments' && <PaymentMethods paymentMethods={profileData.paymentMethods || []} refreshProfile={fetchProfile} />}
+          {activeTab === 'cart' && <Cart cartItems={profileData.cart || []} addresses={profileData.addresses || []} refreshProfile={fetchProfile} />}
         </div>
       </div>
     </div>

@@ -28,7 +28,14 @@ const UserSchema = new mongoose.Schema({
     details: String, // e.g., masked card num or UPI ID
     isDefault: { type: Boolean, default: false }
   }],
-  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+  wishlist: [{ type: String }], // Changed to String to support ML ASINs
+  cart: [{
+    product: String,
+    name: String,
+    price: Number,
+    image: String,
+    quantity: { type: Number, default: 1 }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

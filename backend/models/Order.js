@@ -4,8 +4,15 @@ const OrderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   products: [
     {
-      product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-      quantity: { type: Number, default: 1 }
+      product: { type: String }, // Support ML ASINs or standard ObjectIds
+      quantity: { type: Number, default: 1 },
+      // Denormalized snapshot stored at order time — ensures ML recommendations
+      // work even if the product is later deleted or re-imported with a new _id
+      name:        { type: String, default: '' },
+      category:    { type: String, default: '' },
+      description: { type: String, default: '' },
+      price:       { type: Number, default: 0 },
+      image:       { type: String, default: '' }
     }
   ],
   totalAmount: { type: Number, required: true },

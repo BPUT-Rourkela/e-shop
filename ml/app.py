@@ -40,6 +40,20 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="E-commerce ML API", lifespan=lifespan)
 
 
+def clean_amazon_image_url(url: str) -> str:
+    """
+    Strip the /W/WEBP_XXXXXX-XX/ CDN transform segment from Amazon image URLs.
+
+    Bad:  https://m.media-amazon.com/images/W/WEBP_402378-T2/images/I/412fxJY-gxL._SX300_SY300_QL70_FMwebp_.jpg
+    Good: https://m.media-amazon.com/images/I/412fxJY-gxL._SX300_SY300_QL70_FMwebp_.jpg
+    """
+    if not url or str(url).strip().lower() in ('nan', 'none', ''):
+        return ''
+    # Remove the /W/<CDN_DIRECTIVE>/ path segment that causes 400 errors
+    cleaned = re.sub(r'/W/[^/]+/', '/', str(url).strip())
+    return cleaned
+
+
 class RecommendRequest(BaseModel):
     # PRIMARY: Send product name/description text — works with any DB
     product_texts: Optional[List[str]] = None
@@ -89,7 +103,7 @@ def recommend(request: RecommendRequest):
                 "product_id": product_id,
                 "name": str(row['product_name']),
                 "category": str(row['category']),
-                "image": str(row['img_link']),
+                "image": clean_amazon_image_url(row['img_link']),
                 "product_link": str(row['product_link']),
                 "rating": float(row['rating']) if not pd.isna(row['rating']) else 0.0,
                 "price": float(row['discounted_price']) if not pd.isna(row['discounted_price']) else 0.0,
@@ -119,7 +133,7 @@ def recommend(request: RecommendRequest):
                         "product_id": product_id,
                         "name": str(row['product_name']),
                         "category": str(row['category']),
-                        "image": str(row['img_link']),
+                        "image": clean_amazon_image_url(row['img_link']),
                         "product_link": str(row['product_link']),
                         "rating": float(row['rating']) if not pd.isna(row['rating']) else 0.0,
                         "price": float(row['discounted_price']) if not pd.isna(row['discounted_price']) else 0.0,

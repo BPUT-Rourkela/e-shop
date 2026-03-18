@@ -16,6 +16,7 @@ export const register = (formData) => API.post('/auth/register', formData);
 
 // ---- PRODUCTS ----
 export const fetchProducts = () => API.get('/products');
+export const fetchProductById = (id) => API.get(`/products/${id}`);
 export const fetchTrendingProducts = () => API.get('/products/trending');
 export const fetchRecommendedProducts = () => API.get('/products/recommended');
 export const addProduct = (data) => API.post('/products/add', data);
@@ -37,6 +38,9 @@ export const deleteAddress = (id) => API.delete(`/users/addresses/${id}`);
 export const toggleWishlist = (productId) => API.post('/users/wishlist/toggle', { productId });
 export const addPaymentMethod = (data) => API.post('/users/payment-methods', data);
 export const deletePaymentMethod = (id) => API.delete(`/users/payment-methods/${id}`);
+export const addToCart = (data) => API.post('/users/cart', data);
+export const removeFromCart = (productId) => API.delete(`/users/cart/${productId}`);
+export const clearCart = () => API.delete('/users/cart');
 
 // ---- REVIEWS ----
 export const addReview = (data) => API.post('/reviews/add', data);

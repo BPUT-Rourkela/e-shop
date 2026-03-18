@@ -1,21 +1,28 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { fetchProducts, fetchTrendingProducts, fetchMLRecommendations, createOrder, fetchUserOrders } from '../api';
 import {
-  ShoppingCart, Award, Shield, Truck, Search,
+  ShoppingCart, Award, Shield, Truck, Search, Heart,
   TrendingUp, Star, Monitor, Coffee, Home as HomeIcon, Mouse,
   Sparkles, Zap, Brain
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 
 /* ─────────────────────────────────────────────
    PRODUCT CARD
 ───────────────────────────────────────────── */
-const ProductCard = ({ product, onBuy, badge }) => (
-  <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
+
+const ProductCard = ({ product, onAddToCart, onToggleWishlist, badge }) => (
+  <Link 
+    to={`/product/${product._id}`}
+    state={product}
+    className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col"
+  >
     <div className="relative aspect-square p-6 overflow-hidden bg-white border-b border-gray-50 flex items-center justify-center">
       <img
-        src={product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
+        src={product.image || FALLBACK_IMG}
         alt={product.name}
+        onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
         className="h-full w-full object-contain group-hover:scale-110 transition duration-500"
       />
       <div className="absolute top-3 right-3 bg-emerald-50 border border-emerald-100 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-emerald-600 shadow-sm uppercase tracking-wider">
@@ -26,18 +33,35 @@ const ProductCard = ({ product, onBuy, badge }) => (
       <h3 className="text-sm font-bold mb-1 text-gray-800 line-clamp-2" title={product.name}>{product.name}</h3>
       <p className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mb-2">{product.category}</p>
       <p className="text-gray-500 text-xs mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
-      <div className="flex justify-between items-end mt-auto pt-4">
+      <div className="flex justify-between items-end mt-auto pt-4 relative z-10">
         <span className="text-2xl font-black text-slate-800">${product.price}</span>
-        <button
-          onClick={() => onBuy(product)}
-          className="bg-slate-900 text-white p-2.5 rounded-xl flex items-center justify-center hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20 transition-all active:scale-95"
-          title="Buy Now"
-        >
-          <ShoppingCart size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleWishlist(product);
+            }}
+            className="bg-gray-100 text-gray-600 p-2.5 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all active:scale-95"
+            title="Add to Wishlist"
+          >
+            <Heart size={18} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+            className="bg-slate-900 text-white p-2.5 rounded-xl flex items-center justify-center hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20 transition-all active:scale-95"
+            title="Add to Cart"
+          >
+            <ShoppingCart size={18} />
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </Link>
 );
 
 /* ─────────────────────────────────────────────
@@ -58,7 +82,7 @@ const SectionHeader = ({ icon: Icon, title, subtitle, color = 'indigo' }) => (
 /* ─────────────────────────────────────────────
    AI RECOMMENDATION BANNER (logged-in users)
 ───────────────────────────────────────────── */
-const AIRecommendBanner = ({ loading, items, onBuy }) => {
+const AIRecommendBanner = ({ loading, items, onAddToCart, onToggleWishlist }) => {
   if (loading) {
     return (
       <section className="relative rounded-3xl overflow-hidden mb-4"
@@ -151,7 +175,8 @@ const AIRecommendBanner = ({ loading, items, onBuy }) => {
                 <div className="rounded-2xl overflow-hidden bg-white">
                   <ProductCard
                     product={{ ...p, _id: p._id || p.product_id }}
-                    onBuy={onBuy}
+                    onAddToCart={onAddToCart}
+                    onToggleWishlist={onToggleWishlist}
                   />
                 </div>
               </div>
@@ -174,9 +199,23 @@ const Home = () => {
   const [loadingML, setLoadingML] = useState(false);
   const [recommendedForSearch, setRecommendedForSearch] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
-  const [isLoggedIn] = useState(() => !!localStorage.getItem('token'));
+  // Always read live from localStorage so re-logins are detected without page refresh
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
+
+  // Keep isLoggedIn in sync: listen for login/logout events and tab focus
+  useEffect(() => {
+    const syncLogin = () => setIsLoggedIn(!!localStorage.getItem('token'));
+    window.addEventListener('focus', syncLogin);
+    window.addEventListener('storage', syncLogin);     // fires when another tab changes localStorage
+    window.addEventListener('authChange', syncLogin);  // fired by Login.js after setting token
+    return () => {
+      window.removeEventListener('focus', syncLogin);
+      window.removeEventListener('storage', syncLogin);
+      window.removeEventListener('authChange', syncLogin);
+    };
+  }, []);
 
   // ---- Category helpers ----
   const getTopProducts = useCallback((items, keywords) =>
@@ -200,34 +239,7 @@ const Home = () => {
 
         // Personalized ML recommendations only for logged-in users
         if (isLoggedIn) {
-          setLoadingML(true);
-          try {
-            const userOrdersRes = await fetchUserOrders();
-            const pastProducts = userOrdersRes.data.flatMap(o =>
-              o.products.map(p => p.product).filter(Boolean)
-            );
-
-            if (pastProducts.length > 0) {
-              // Build text corpus from purchased product names/descriptions/categories
-              const texts = pastProducts
-                .filter(p => p && p.name)
-                .map(p => [p.name, p.category, p.description]
-                  .filter(Boolean).join(' ').trim())
-                .slice(0, 8)
-                .filter(t => t.length > 0);
-
-              if (texts.length > 0) {
-                const mlRes = await fetchMLRecommendations(texts);
-                const recs = mlRes.data.recommendations || [];
-                setMlRecommended(recs.slice(0, 12));
-              }
-            }
-          } catch (e) {
-            // User has no orders or ML failed — show nothing (categories will still show)
-            console.log('[ML] No personalized recs available:', e.message);
-          } finally {
-            setLoadingML(false);
-          }
+          await loadMLRecommendations();
         }
       } catch (err) {
         console.error(err);
@@ -237,6 +249,49 @@ const Home = () => {
     };
     loadAll();
   }, [isLoggedIn]);
+
+  // ---- Fetch ML recommendations (called on login-load AND after every purchase) ----
+  const loadMLRecommendations = async () => {
+    setLoadingML(true);
+    try {
+      const userOrdersRes = await fetchUserOrders();
+      const orders = userOrdersRes.data || [];
+
+      // Build product text from each order item.
+      // Priority 1: Denormalized fields stored directly on the order (name/category/description).
+      //             These are set at purchase time and survive product deletions/re-imports.
+      // Priority 2: Populated product object (p.product) — works for very old orders
+      //             that were placed before the denormalized fields were added.
+      const texts = orders
+        .flatMap(o => o.products || [])
+        .map(p => {
+          // Priority 1 — denormalized snapshot in the order item itself
+          const name = p.name || (typeof p.product === 'object' ? p.product?.name : null);
+          const cat  = p.category || (typeof p.product === 'object' ? p.product?.category : null);
+          const desc = p.description || (typeof p.product === 'object' ? p.product?.description : null);
+          return [name, cat, desc].filter(Boolean).join(' ').trim();
+        })
+        .filter(t => t.length > 0)
+        .slice(0, 8);
+
+      console.log('[ML] Order history texts:', texts);
+
+      if (texts.length > 0) {
+        const mlRes = await fetchMLRecommendations(texts);
+        const recs = mlRes.data.recommendations || [];
+        console.log('[ML] Recommendations received:', recs.length);
+        setMlRecommended(recs.slice(0, 12));
+      } else {
+        console.log('[ML] No product history found — section hidden');
+        setMlRecommended([]);
+      }
+    } catch (e) {
+      console.log('[ML] Recommendation fetch failed:', e.message);
+      setMlRecommended([]);
+    } finally {
+      setLoadingML(false);
+    }
+  };
 
   // ---- Search-based ML recommendations ----
   useEffect(() => {
@@ -269,17 +324,41 @@ const Home = () => {
     }
   }, [searchQuery, products]);
 
-  // ---- Buy handler ----
-  const handleBuyNow = async (product) => {
+  // ---- Cart handlers ----
+  const handleAddToCart = async (product) => {
     if (!localStorage.getItem('token')) {
-      alert('Please login to buy products');
+      alert('Please login to add to cart');
       return;
     }
     try {
-      await createOrder({ products: [{ product: product._id, quantity: 1 }], totalAmount: product.price });
-      alert('Order placed successfully!');
+      // Need to import addToCart from api.js! We'll do it later in the file if imported, or just import it at top.
+      const api = require('../api');
+      await api.addToCart({ 
+        product: product._id, 
+        quantity: 1,
+        name: product.name,
+        category: product.category,
+        description: product.description,
+        price: product.price,
+        image: product.image
+      });
+      alert('Product added to Cart!');
     } catch (err) {
-      alert('Failed to place order');
+      alert('Failed to add to cart: ' + err.message);
+    }
+  };
+
+  const handleToggleWishlist = async (product) => {
+    if (!localStorage.getItem('token')) {
+      alert('Please login to adjust wishlist');
+      return;
+    }
+    try {
+      const api = require('../api');
+      await api.toggleWishlist(product._id);
+      alert('Wishlist updated!');
+    } catch (err) {
+      alert('Failed to updated wishlist: ' + err.message);
     }
   };
 
@@ -390,7 +469,7 @@ const Home = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              {filteredProducts.map(p => <ProductCard key={p._id} product={p} onBuy={handleBuyNow} />)}
+              {filteredProducts.map(p => <ProductCard key={p._id} product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />)}
             </div>
           )}
 
@@ -417,7 +496,7 @@ const Home = () => {
                       <div className="absolute -top-3 -left-2 z-10 bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                         SMART MATCH
                       </div>
-                      <ProductCard product={{ ...p, _id: p._id || p.product_id }} onBuy={handleBuyNow} />
+                      <ProductCard product={{ ...p, _id: p._id || p.product_id }} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
                     </div>
                   ))}
                 </div>
@@ -433,11 +512,12 @@ const Home = () => {
 
           {/* ── AI "Recommended For You" — only for logged-in users with history ── */}
           {showAISection && (
-            <AIRecommendBanner
-              loading={loadingML}
-              items={mlRecommended}
-              onBuy={handleBuyNow}
-            />
+              <AIRecommendBanner
+                loading={loadingML}
+                items={mlRecommended}
+                onAddToCart={handleAddToCart}
+                onToggleWishlist={handleToggleWishlist}
+              />
           )}
 
           {/* ── Trending Now ── */}
@@ -448,7 +528,7 @@ const Home = () => {
                 {trending.map(p => (
                   <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0 relative">
                     <div className="absolute -top-3 -left-2 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">TRENDING</div>
-                    <ProductCard product={p} onBuy={handleBuyNow} />
+                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
                   </div>
                 ))}
               </div>
@@ -462,7 +542,7 @@ const Home = () => {
               <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
                 {electronics.map(p => (
                   <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onBuy={handleBuyNow} />
+                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
                   </div>
                 ))}
               </div>
@@ -476,7 +556,7 @@ const Home = () => {
               <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
                 {kitchen.map(p => (
                   <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onBuy={handleBuyNow} />
+                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
                   </div>
                 ))}
               </div>
@@ -490,7 +570,7 @@ const Home = () => {
               <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
                 {homeItems.map(p => (
                   <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onBuy={handleBuyNow} />
+                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
                   </div>
                 ))}
               </div>
@@ -504,7 +584,7 @@ const Home = () => {
               <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
                 {computerAccessories.map(p => (
                   <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onBuy={handleBuyNow} />
+                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
                   </div>
                 ))}
               </div>

@@ -33,6 +33,21 @@ router.get('/recommended', async (req, res) => {
   }
 });
 
+// PUBLIC: Get single product by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: 'Product not found locally (likely an ML ASIN)' });
+    }
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ADMIN: Add product
 router.post('/add', verifyToken, isAdmin, async (req, res) => {
   try {
