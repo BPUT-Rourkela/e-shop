@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { login, register } from '../api';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, CheckSquare, Square } from 'lucide-react';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'customer' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [formData, setFormData] = useState({ 
+    firstName: '', 
+    lastName: '', 
+    email: '', 
+    password: '', 
+    role: 'customer' 
+  });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -15,18 +24,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isLogin && !agreeTerms) {
+      alert("Please agree to the Terms of Service and Privacy Policy.");
+      return;
+    }
     setLoading(true);
     try {
       if (isLogin) {
         const { data } = await login({ email: formData.email, password: formData.password });
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
-        // Notify Navbar to re-render
         window.dispatchEvent(new Event('authChange'));
         navigate(data.user.role === 'admin' ? '/admin' : '/');
-
       } else {
-        await register(formData);
+        // Map firstName+lastName to name for the backend
+        const regData = { 
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          password: formData.password,
+          role: 'customer'
+        };
+        await register(regData);
         alert("Registration successful! Please login.");
         setIsLogin(true);
       }
@@ -38,120 +56,132 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 pt-24 selection:bg-teal-200">
-      <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden flex w-full max-w-5xl">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6 selection:bg-teal-200">
+      <div className="w-full max-w-[440px] flex flex-col items-center">
         
-        {/* Decorative Side Panel */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 p-12 flex-col justify-between text-white relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-4xl font-extrabold mb-4">
-              {isLogin ? "Welcome Back to EcomStore" : "Join the EcomStore Family"}
-            </h2>
-            <p className="text-purple-200 text-lg">
-              {isLogin 
-                ? "Sign in to access personalized deals, fast checkout, and exclusive products." 
-                : "Create an account for the smartest, fastest, and most beautiful shopping experience."}
-            </p>
-          </div>
-          <div className="relative z-10 mt-12 bg-white/10 p-6 rounded-2xl border border-white/20 backdrop-blur-sm">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="bg-teal-400/20 p-2 rounded-lg text-teal-300"><ShieldCheck size={28} /></div>
-              <h4 className="font-bold text-lg">Secure Access</h4>
-            </div>
-            <p className="text-sm text-purple-100">Your data is fully encrypted and protected during every step of your shopping journey.</p>
-          </div>
-          {/* Background decoration elements */}
-          <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-          <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+        {/* Branding & Header */}
+        <div className="text-center mb-10 w-full">
+          <h1 className="text-[32px] font-extrabold text-[#0d1b2a] tracking-tight mb-1">
+            EcomStore
+          </h1>
+          <p className="text-gray-500 font-medium tracking-wide">
+            {isLogin ? "Welcome back" : "Create your account"}
+          </p>
         </div>
 
-        {/* Form Panel */}
-        <div className="w-full lg:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-white relative">
-          <div className="max-w-md w-full mx-auto">
-            <div className="text-center mb-10">
-              <h3 className="text-3xl font-extrabold text-gray-900 mb-2">
-                {isLogin ? "Hello Again!" : "Create Account"}
-              </h3>
-              <p className="text-gray-500 font-medium">
-                {isLogin ? "Sign in to your account" : "Fill out the form to get started"}
-              </p>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="w-full space-y-6">
+          {!isLogin && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 ml-1">First name</label>
+                <input 
+                  name="firstName" 
+                  type="text" 
+                  placeholder="" 
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-[1.25rem] focus:outline-none focus:border-indigo-500/50 focus:bg-white transition-all text-gray-800 placeholder-gray-300 font-medium"
+                  required={!isLogin} 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 ml-1">Last name</label>
+                <input 
+                  name="lastName" 
+                  type="text" 
+                  placeholder="" 
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-[1.25rem] focus:outline-none focus:border-indigo-500/50 focus:bg-white transition-all text-gray-800 placeholder-gray-300 font-medium"
+                  required={!isLogin} 
+                />
+              </div>
             </div>
+          )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition-colors">
-                    <User size={20} />
-                  </div>
-                  <input 
-                    name="name" 
-                    type="text" 
-                    placeholder="Full Name" 
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-gray-800"
-                    required={!isLogin} 
-                  />
-                </div>
-              )}
-              
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition-colors">
-                  <Mail size={20} />
-                </div>
-                <input 
-                  name="email" 
-                  type="email" 
-                  placeholder="Email Address" 
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-gray-800"
-                  required 
-                />
-              </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-gray-500 ml-1">Email</label>
+            <input 
+              name="email" 
+              type="email" 
+              placeholder="you@example.com" 
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-[1.25rem] focus:outline-none focus:border-indigo-500/50 focus:bg-white transition-all text-gray-800 placeholder-gray-300 font-medium"
+              required 
+            />
+          </div>
 
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition-colors">
-                  <Lock size={20} />
-                </div>
-                <input 
-                  name="password" 
-                  type="password" 
-                  placeholder="Password" 
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-gray-800"
-                  required 
-                />
-              </div>
-
+          <div className="space-y-2 relative">
+            <label className="text-sm font-semibold text-gray-500 ml-1">Password</label>
+            <div className="relative">
+              <input 
+                name="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder={isLogin ? "••••••••" : "Min. 8 characters"} 
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-[1.25rem] focus:outline-none focus:border-indigo-500/50 focus:bg-white transition-all text-gray-800 placeholder-gray-300 font-medium pr-12"
+                required 
+              />
               <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors focus:outline-none"
               >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    {isLogin ? "Sign In" : "Sign Up"}
-                    <ArrowRight size={20} />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-8 text-center text-gray-500 font-medium">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-              <button 
-                type="button" 
-                onClick={() => setIsLogin(!isLogin)}
-                className="ml-2 text-indigo-600 hover:text-indigo-800 font-bold transition-colors"
-              >
-                {isLogin ? "Register now" : "Log in instead"}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
+
+          <div className="flex items-center justify-between px-1">
+            <div 
+              className="flex items-center gap-2 cursor-pointer group select-none"
+              onClick={() => isLogin ? setRememberMe(!rememberMe) : setAgreeTerms(!agreeTerms)}
+            >
+              <div className={`transition-colors duration-200 ${isLogin && rememberMe || !isLogin && agreeTerms ? 'text-indigo-600' : 'text-gray-300 group-hover:text-gray-400'}`}>
+                {isLogin && rememberMe || !isLogin && agreeTerms ? <CheckSquare size={18} fill="currentColor" className="text-white" /> : <Square size={18} />}
+              </div>
+              <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
+                {isLogin ? "Remember me" : "I agree to the Terms of Service and Privacy Policy"}
+              </span>
+            </div>
+            {isLogin && (
+              <button type="button" className="text-sm font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">
+                Forgot password?
+              </button>
+            )}
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-[#0d1b2a] text-white py-4 rounded-[1.25rem] font-bold text-center hover:bg-[#1a2e47] transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed shadow-xl shadow-[#0d1b2a]/10"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Processing...</span>
+              </div>
+            ) : (
+              isLogin ? "Sign In" : "Create Account"
+            )}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-10 text-center">
+          <p className="text-[15px] font-medium text-gray-500">
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <button 
+              type="button" 
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-indigo-600 hover:text-indigo-800 font-bold ml-1"
+            >
+              {isLogin ? "Sign up" : "Sign in"}
+            </button>
+          </p>
         </div>
       </div>
     </div>
