@@ -140,8 +140,8 @@ const Login = () => {
               className="flex items-center gap-2 cursor-pointer group select-none"
               onClick={() => isLogin ? setRememberMe(!rememberMe) : setAgreeTerms(!agreeTerms)}
             >
-              <div className={`transition-colors duration-200 ${isLogin && rememberMe || !isLogin && agreeTerms ? 'text-indigo-600' : 'text-gray-300 group-hover:text-gray-400'}`}>
-                {isLogin && rememberMe || !isLogin && agreeTerms ? <CheckSquare size={18} fill="currentColor" className="text-white" /> : <Square size={18} />}
+              <div className={`transition-colors duration-200 ${((isLogin && rememberMe) || (!isLogin && agreeTerms)) ? 'text-indigo-600' : 'text-gray-300 group-hover:text-gray-400'}`}>
+                {((isLogin && rememberMe) || (!isLogin && agreeTerms)) ? <CheckSquare size={18} fill="currentColor" className="text-white" /> : <Square size={18} />}
               </div>
               <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
                 {isLogin ? "Remember me" : "I agree to the Terms of Service and Privacy Policy"}

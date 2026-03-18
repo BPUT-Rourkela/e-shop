@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { fetchProducts, fetchTrendingProducts, fetchMLRecommendations, createOrder, fetchUserOrders } from '../api';
 import {
-  ShoppingCart, PackageOpen, Award, Shield, Truck, Search,
+  ShoppingCart, Award, Shield, Truck, Search,
   TrendingUp, Star, Monitor, Coffee, Home as HomeIcon, Mouse,
   Sparkles, Zap, Brain
 } from 'lucide-react';
@@ -321,40 +321,54 @@ const Home = () => {
           className="absolute inset-0"
           style={{ background: 'linear-gradient(to right, #0d1b2a 40%, rgba(13,27,42,0.75) 65%, rgba(13,27,42,0.25) 100%)' }}
         />
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 flex flex-col justify-center" style={{ minHeight: '100vh' }}>
-          <p className="text-xs font-bold tracking-widest uppercase text-indigo-400 mb-5">New Collection</p>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-2xl leading-tight">
-            Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-300">Extraordinary</span> Products
-          </h1>
-          <p className="text-base md:text-lg text-blue-200/75 mb-10 max-w-xl leading-relaxed">
-            Experience the future of shopping. Curated items, securely delivered to your door with unparalleled speed.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <button className="flex items-center gap-2 bg-white text-gray-900 px-7 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-md">
-              Shop Now <span className="text-base">→</span>
-            </button>
-            <button className="flex items-center gap-2 bg-[#1a2e47] hover:bg-[#213655] border border-white/15 text-white px-7 py-3 rounded-lg font-semibold transition">
-              Explore Deals
-            </button>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 flex flex-col justify-between pt-32 pb-12" style={{ minHeight: '100vh' }}>
+          <div className="flex-1 flex flex-col justify-center">
+            <p className="text-xs font-bold tracking-widest uppercase text-indigo-400 mb-5">New Collection</p>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-2xl leading-tight text-white">
+              Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-300">Extraordinary</span> Products
+            </h1>
+            <p className="text-base md:text-lg text-blue-200/75 mb-10 max-w-xl leading-relaxed">
+              Experience the future of shopping. Curated items, securely delivered to your door with unparalleled speed.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <button className="flex items-center gap-2 bg-white text-gray-900 px-7 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-md">
+                Shop Now <span className="text-base">→</span>
+              </button>
+              <button className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-sm text-white px-7 py-3 rounded-lg font-semibold transition">
+                Explore Deals
+              </button>
+            </div>
+          </div>
+
+          {/* ── Features Row (now inside Hero bottom) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-2xl transition hover:bg-white/15 group">
+              <div className="bg-indigo-500/20 p-3 rounded-xl text-indigo-300 group-hover:scale-110 transition-transform"><Truck size={24} /></div>
+              <div>
+                <h4 className="font-bold text-lg text-white">Fast Delivery</h4>
+                <p className="text-sm text-indigo-200/60 font-medium">Free shipping on orders over $50</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-2xl transition hover:bg-white/15 group">
+              <div className="bg-emerald-500/20 p-3 rounded-xl text-emerald-300 group-hover:scale-110 transition-transform"><Shield size={24} /></div>
+              <div>
+                <h4 className="font-bold text-lg text-white">Secure Checkout</h4>
+                <p className="text-sm text-emerald-200/60 font-medium">100% protected payments</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-2xl transition hover:bg-white/15 group">
+              <div className="bg-amber-500/20 p-3 rounded-xl text-amber-300 group-hover:scale-110 transition-transform"><Award size={24} /></div>
+              <div>
+                <h4 className="font-bold text-lg text-white">Premium Quality</h4>
+                <p className="text-sm text-amber-200/60 font-medium">Hand-picked and verified items</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Features Row ── */}
-      <div className="max-w-7xl mx-auto px-6 mb-14 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600"><Truck size={24} /></div>
-          <div><h4 className="font-bold text-lg">Fast Delivery</h4><p className="text-sm text-gray-500">Free shipping on orders over $50</p></div>
-        </div>
-        <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600"><Shield size={24} /></div>
-          <div><h4 className="font-bold text-lg">Secure Checkout</h4><p className="text-sm text-gray-500">100% protected payments</p></div>
-        </div>
-        <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="bg-amber-100 p-3 rounded-xl text-amber-600"><Award size={24} /></div>
-          <div><h4 className="font-bold text-lg">Premium Quality</h4><p className="text-sm text-gray-500">Hand-picked and verified items</p></div>
-        </div>
-      </div>
+      {/* ── Main Content (moved mt accordingly) ── */}
+      <div className="mt-8"></div>
 
       {/* ── Main Content ── */}
       {loadingPage ? (
@@ -501,43 +515,47 @@ const Home = () => {
       )}
 
       {/* ── Footer ── */}
-      <footer className="border-t border-gray-200 bg-white mt-8">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-10">
+      <footer className="bg-[#0d1b2a] text-white border-t border-white/10 mt-16 px-4">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12">
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-4">Products</h4>
-              <ul className="space-y-2">
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">All Products</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">New Arrivals</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Bestsellers</a></li>
+              <h4 className="text-sm font-black text-teal-400 uppercase tracking-widest mb-6">Products</h4>
+              <ul className="space-y-3">
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">All Products</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">New Arrivals</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Bestsellers</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">About</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Careers</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Press</a></li>
+              <h4 className="text-sm font-black text-teal-400 uppercase tracking-widest mb-6">Company</h4>
+              <ul className="space-y-3">
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">About</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Careers</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Press</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-4">Support</h4>
-              <ul className="space-y-2">
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Help Center</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Returns</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Shipping</a></li>
+              <h4 className="text-sm font-black text-teal-400 uppercase tracking-widest mb-6">Support</h4>
+              <ul className="space-y-3">
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Help Center</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Returns</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Shipping</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Privacy</a></li>
-                <li><a href="/" className="text-sm text-gray-600 hover:text-gray-900 hover:font-semibold transition-colors">Terms</a></li>
+              <h4 className="text-sm font-black text-teal-400 uppercase tracking-widest mb-6">Legal</h4>
+              <ul className="space-y-3">
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Privacy</a></li>
+                <li><a href="/" className="text-sm text-gray-400 hover:text-white transition-all">Terms</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-100 pt-6">
-            <p className="text-sm text-gray-400">© {new Date().getFullYear()} EcomStore. All rights reserved.</p>
+          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-500 font-medium font-sans italic">© {new Date().getFullYear()} EcomStore. All rights reserved.</p>
+            <div className="flex gap-6 text-gray-500 text-xs uppercase tracking-tighter">
+              <span>Secure Payments</span>
+              <span>Global Shipping</span>
+            </div>
           </div>
         </div>
       </footer>

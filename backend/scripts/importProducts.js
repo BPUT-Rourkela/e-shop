@@ -8,7 +8,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const fs   = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
-const csv  = require('csv-parse/sync');
+const { parse } = require('csv-parse/sync');
 
 const Product = require('../models/Product');
 
@@ -36,7 +36,7 @@ async function run() {
     const csvPath = path.join(__dirname, '../../amazon.csv');
     const raw = fs.readFileSync(csvPath, 'utf8');
 
-    const records = csv.parse(raw, {
+    const records = parse(raw, {
       columns: true,
       skip_empty_lines: true,
       relax_quotes: true,
@@ -59,6 +59,7 @@ async function run() {
     const docs = unique
       .filter(r => r.product_name && r.discounted_price)
       .map(r => ({
+        amazon_id:   r.product_id.trim(),
         name:        r.product_name.trim(),
         description: r.about_product
           ? r.about_product.split('|')[0].trim().slice(0, 500)
