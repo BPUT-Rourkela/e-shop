@@ -125,3 +125,46 @@ exports.deletePaymentMethod = async (req, res) => {
       res.status(500).json({ error: err.message });
     }
 };
+
+// Add to Cart
+exports.addToCart = async (req, res) => {
+  try {
+    const { product, name, price, image, quantity = 1 } = req.body;
+    const user = await User.findById(req.user.id);
+    
+    const existing = user.cart.find(c => c.product === product);
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      user.cart.push({ product, name, price, image, quantity });
+    }
+    await user.save();
+    res.json({ message: 'Added to cart', cart: user.cart });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Remove from Cart
+exports.removeFromCart = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.cart = user.cart.filter(c => c.product !== req.params.productId);
+    await user.save();
+    res.json({ message: 'Removed from cart', cart: user.cart });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Clear Cart
+exports.clearCart = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.cart = [];
+    await user.save();
+    res.json({ message: 'Cart cleared', cart: user.cart });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

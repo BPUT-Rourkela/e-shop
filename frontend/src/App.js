@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
+import ProductDetails from './pages/ProductDetails';
 
 import { Navigate } from 'react-router-dom';
 
@@ -32,6 +33,7 @@ function App() {
         <Route path="/profile" element={<CustomerRoute><Profile /></CustomerRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> 
         <Route path="/orders" element={<Orders />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
       </Routes>
     </Router>
   );

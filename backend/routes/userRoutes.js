@@ -9,7 +9,10 @@ const {
   deleteAddress,
   toggleWishlist,
   addPaymentMethod,
-  deletePaymentMethod
+  deletePaymentMethod,
+  addToCart,
+  removeFromCart,
+  clearCart
 } = require('../controllers/userController');
 
 // All routes require authentication
@@ -26,5 +29,9 @@ router.post('/wishlist/toggle', toggleWishlist);
 
 router.post('/payment-methods', addPaymentMethod);
 router.delete('/payment-methods/:id', deletePaymentMethod);
+
+router.post('/cart', addToCart);
+router.delete('/cart/:productId', removeFromCart);
+router.delete('/cart', clearCart);
 
 module.exports = router;
