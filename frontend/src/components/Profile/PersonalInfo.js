@@ -65,7 +65,11 @@ const PersonalInfo = ({ profile, refreshProfile }) => {
         </div>
         
         <div className="pt-4">
-          <button type="submit" disabled={loading} className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors focus:ring-4 focus:ring-indigo-200 disabled:opacity-70">
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="px-8 py-4 bg-[#0d1b2a] text-white font-bold rounded-xl hover:bg-[#1a2e47] transition-all transform active:scale-[0.98] focus:ring-4 focus:ring-[#0d1b2a]/10 disabled:opacity-70 shadow-lg shadow-[#0d1b2a]/5"
+          >
             {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

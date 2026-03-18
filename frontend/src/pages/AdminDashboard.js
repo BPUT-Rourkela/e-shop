@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer, PieChart, Pie, Cell
+  ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import {
   fetchProducts, addProduct, updateProduct, deleteProduct,
-  toggleTrending, toggleRecommended,
   fetchAdminStats, fetchAdminOrders, updateOrderStatus,
   fetchAdminCustomers, fetchCustomerOrders,
   fetchAdminTransactions, fetchAdminAnalytics, fetchAdminReviews,
@@ -13,7 +12,7 @@ import {
 } from '../api';
 import {
   LayoutDashboard, Package, Users, CreditCard, ShoppingBag,
-  TrendingUp, Star, BarChart2, Trash2, Edit3, Check, X,
+  Star, Trash2, Edit3, 
   ThumbsUp, ThumbsDown, Minus, RefreshCw,LogOut
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';

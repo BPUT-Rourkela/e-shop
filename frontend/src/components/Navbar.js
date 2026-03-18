@@ -11,6 +11,7 @@ function Navbar() {
   const location = useLocation();
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
   const isHomePage = location.pathname === '/';
+  const isLoginPage = location.pathname === '/login';
   const isRecommendationsTab = location.pathname === '/admin' && urlSearchParams.get('tab') === 'recommendations';
   const showSearch = isHomePage || isRecommendationsTab;
 
@@ -39,6 +40,7 @@ function Navbar() {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     window.dispatchEvent(new Event('authChange'));
+    navigate('/login');
   };
 
   const handleSearch = (e) => {
@@ -71,6 +73,8 @@ function Navbar() {
   const searchBg = isDarkActive
     ? 'bg-white/10 border-white/20 placeholder-white/40 text-white focus:bg-white/15'
     : 'bg-white/15 border-white/25 placeholder-white/50 text-white focus:bg-white/25';
+
+  if (isLoginPage) return null;
 
   return (
     /* Outer wrapper — fixed, full width, provides the top padding for floating effect */
