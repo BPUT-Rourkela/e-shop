@@ -27,9 +27,7 @@ const tabs = [
   { id: 'customers', label: 'Customers', icon: Users },
   { id: 'transactions', label: 'Transactions', icon: CreditCard },
   { id: 'products', label: 'Products', icon: Package },
-  { id: 'recommendations', label: 'Recommendations', icon: TrendingUp },
   { id: 'reviews', label: 'Reviews & Sentiment', icon: Star },
-  { id: 'analytics', label: 'Analytics', icon: BarChart2 },
 ];
 
 const StatusBadge = ({ status }) => {
@@ -55,8 +53,8 @@ const SentimentBadge = ({ sentiment }) => {
 };
 
 // ========== OVERVIEW TAB ==========
-const OverviewTab = ({ stats }) => {
-  if (!stats) return <div className="flex justify-center py-20"><div className="animate-spin h-10 w-10 rounded-full border-b-2 border-indigo-600"></div></div>;
+const OverviewTab = ({ stats, analytics }) => {
+  if (!stats || !analytics) return <div className="flex justify-center py-20"><div className="animate-spin h-10 w-10 rounded-full border-b-2 border-indigo-600"></div></div>;
   const cards = [
     { label: 'Total Revenue', value: `$${stats.totalRevenue?.toFixed(2) || '0.00'}`, color: 'from-indigo-500 to-purple-600' },
     { label: 'Total Orders', value: stats.totalOrders || 0, color: 'from-teal-500 to-emerald-600' },
@@ -84,6 +82,57 @@ const OverviewTab = ({ stats }) => {
             <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} dot={false} />
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Revenue by Month */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="font-bold text-gray-800 mb-4">Revenue by Month</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={analytics.revenueByMonth || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="_id" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v) => [`$${v.toFixed(2)}`, 'Revenue']} />
+              <Bar dataKey="revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Category Distribution */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="font-bold text-gray-800 mb-4">Sales by Category</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie data={analytics.categoryStats || []} dataKey="count" nameKey="_id" cx="50%" cy="50%" outerRadius={90} label={({ _id, percent }) => `${_id} ${(percent * 100).toFixed(0)}%`}>
+                {(analytics.categoryStats || []).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Top Products */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h3 className="font-bold text-gray-800 mb-6">🏆 Top Selling Products</h3>
+        <div className="space-y-4">
+          {(analytics.topProducts || []).map((p, i) => (
+            <div key={p._id} className="flex items-center gap-4">
+              <span className="w-6 text-sm font-bold text-gray-400">#{i + 1}</span>
+              <img src={p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=40'} alt={p.name} className="h-10 w-10 rounded-lg object-cover" />
+              <span className="flex-grow font-medium text-gray-800">{p.name}</span>
+              <div className="text-right">
+                <p className="font-bold text-indigo-700">{p.totalSold} sold</p>
+                <p className="text-xs text-gray-400">${p.price} each</p>
+              </div>
+              <div className="w-32 bg-gray-100 rounded-full h-2">
+                <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${Math.min(100, (p.totalSold / (analytics.topProducts[0]?.totalSold || 1)) * 100)}%` }} />
+              </div>
+            </div>
+          ))}
+          {(!analytics.topProducts || analytics.topProducts.length === 0) && <p className="text-gray-400 text-center py-8">No sales data yet.</p>}
+        </div>
       </div>
     </div>
   );
@@ -351,68 +400,6 @@ const ProductsTab = ({ products, setProducts }) => {
   );
 };
 
-// ========== RECOMMENDATIONS TAB ==========
-const RecommendationsTab = ({ products, setProducts }) => {
-  const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get('search')?.toLowerCase() || '';
-
-  const handleToggle = async (id, type) => {
-    try {
-      const fn = type === 'trending' ? toggleTrending : toggleRecommended;
-      const { data } = await fn(id);
-      setProducts(prev => prev.map(p => p._id === id ? { ...p, [type === 'trending' ? 'isTrending' : 'isRecommended']: data[type === 'trending' ? 'isTrending' : 'isRecommended'] } : p));
-    } catch { alert('Failed to update.'); }
-  };
-
-  const ToggleBtn = ({ active, onClick, label, color }) => (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition ${active ? `bg-${color}-100 text-${color}-700 border border-${color}-300` : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'}`}
-    >
-      {active ? <Check size={12} /> : <X size={12} />}
-      {label}
-    </button>
-  );
-
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery) || 
-    p.category.toLowerCase().includes(searchQuery)
-  );
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Recommendation Control ({filteredProducts.length})</h2>
-        <p className="text-sm text-gray-400">Toggle which products appear in Trending & Recommended sections on the homepage</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filteredProducts.map(p => (
-          <div key={p._id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex items-start gap-4">
-            <img src={p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=60&q=80'} alt={p.name} className="h-16 w-16 rounded-xl object-cover flex-shrink-0" />
-            <div className="flex-grow min-w-0">
-              <p className="font-bold text-gray-800 text-sm truncate">{p.name}</p>
-              <p className="text-gray-400 text-xs mb-3">${p.price} • {p.purchaseCount || 0} sold</p>
-              <div className="flex flex-col gap-2">
-                <ToggleBtn
-                  active={p.isTrending}
-                  onClick={() => handleToggle(p._id, 'trending')}
-                  label={p.isTrending ? '🔥 Trending' : '+ Set Trending'}
-                  color="red"
-                />
-                <ToggleBtn
-                  active={p.isRecommended}
-                  onClick={() => handleToggle(p._id, 'recommended')}
-                  label={p.isRecommended ? '⭐ Recommended' : '+ Set Recommended'}
-                  color="amber"
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // ========== REVIEWS TAB ==========
 const ReviewsTab = ({ reviews, setReviews }) => {
@@ -478,64 +465,6 @@ const ReviewsTab = ({ reviews, setReviews }) => {
   );
 };
 
-// ========== ANALYTICS TAB ==========
-const AnalyticsTab = ({ analytics }) => {
-  if (!analytics) return <div className="flex justify-center py-20"><div className="animate-spin h-10 w-10 rounded-full border-b-2 border-indigo-600"></div></div>;
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Revenue by Month */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-4">Revenue by Month</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={analytics.revenueByMonth || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="_id" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v) => [`$${v.toFixed(2)}`, 'Revenue']} />
-              <Bar dataKey="revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Category Distribution */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-4">Sales by Category</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={analytics.categoryStats || []} dataKey="count" nameKey="_id" cx="50%" cy="50%" outerRadius={90} label={({ _id, percent }) => `${_id} ${(percent * 100).toFixed(0)}%`}>
-                {(analytics.categoryStats || []).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Top Products */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h3 className="font-bold text-gray-800 mb-6">🏆 Top Selling Products</h3>
-        <div className="space-y-4">
-          {(analytics.topProducts || []).map((p, i) => (
-            <div key={p._id} className="flex items-center gap-4">
-              <span className="w-6 text-sm font-bold text-gray-400">#{i + 1}</span>
-              <img src={p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=40'} alt={p.name} className="h-10 w-10 rounded-lg object-cover" />
-              <span className="flex-grow font-medium text-gray-800">{p.name}</span>
-              <div className="text-right">
-                <p className="font-bold text-indigo-700">{p.totalSold} sold</p>
-                <p className="text-xs text-gray-400">${p.price} each</p>
-              </div>
-              <div className="w-32 bg-gray-100 rounded-full h-2">
-                <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${Math.min(100, (p.totalSold / (analytics.topProducts[0]?.totalSold || 1)) * 100)}%` }} />
-              </div>
-            </div>
-          ))}
-          {(!analytics.topProducts || analytics.topProducts.length === 0) && <p className="text-gray-400 text-center py-8">No sales data yet.</p>}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ========== MAIN ADMIN DASHBOARD ==========
 const AdminDashboard = () => {
@@ -645,14 +574,12 @@ const AdminDashboard = () => {
         <h2 className="text-3xl font-extrabold text-gray-900 mb-8 capitalize">
           {tabs.find(t => t.id === activeTab)?.label}
         </h2>
-        {activeTab === 'overview' && <OverviewTab stats={stats} />}
+        {activeTab === 'overview' && <OverviewTab stats={stats} analytics={analytics} />}
         {activeTab === 'orders' && <OrdersTab orders={orders} setOrders={setOrders} />}
         {activeTab === 'customers' && <CustomersTab customers={customers} />}
         {activeTab === 'transactions' && <TransactionsTab transactions={transactions} />}
         {activeTab === 'products' && <ProductsTab products={products} setProducts={setProducts} />}
-        {activeTab === 'recommendations' && <RecommendationsTab products={products} setProducts={setProducts} />}
         {activeTab === 'reviews' && <ReviewsTab reviews={reviews} setReviews={setReviews} />}
-        {activeTab === 'analytics' && <AnalyticsTab analytics={analytics} />}
       </main>
     </div>
   );
