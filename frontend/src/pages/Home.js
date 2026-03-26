@@ -302,7 +302,6 @@ const Home = () => {
     const q = searchQuery.toLowerCase();
     const filtered = products.filter(p =>
       p.name?.toLowerCase().includes(q) ||
-      p.description?.toLowerCase().includes(q) ||
       p.category?.toLowerCase().includes(q)
     );
     if (filtered.length > 0) {
@@ -368,7 +367,6 @@ const Home = () => {
     const q = searchQuery.toLowerCase();
     return (
       p.name?.toLowerCase().includes(q) ||
-      p.description?.toLowerCase().includes(q) ||
       p.category?.toLowerCase().includes(q)
     );
   });
@@ -392,7 +390,7 @@ const Home = () => {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=800&fit=crop')`,
+            backgroundImage: `url('/hero-electronics.png')`,
             opacity: 0.35,
           }}
         />
