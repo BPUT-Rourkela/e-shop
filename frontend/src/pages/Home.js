@@ -390,8 +390,8 @@ const Home = () => {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url('/hero-electronics.png')`,
-            opacity: 0.35,
+            backgroundImage: `url('/homepage_img.jpg')`,
+            opacity: 0.95,
           }}
         />
         <div
