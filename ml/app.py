@@ -147,17 +147,25 @@ def recommend(request: RecommendRequest):
     return {"recommendations": recommendations}
 
 
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+analyzer = SentimentIntensityAnalyzer()
+
 @app.post("/analyze_sentiment")
 def analyze_sentiment(request: SentimentRequest):
-    if sent_model is None or sent_tfidf is None:
-        raise HTTPException(status_code=500, detail="Sentiment models not loaded")
-
     text = request.text.lower()
     text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
     text = text.translate(str.maketrans('', '', string.punctuation))
 
-    X = sent_tfidf.transform([text])
-    prediction = sent_model.predict(X)[0]
+    # Use VADER directly for much higher accuracy than the logistic regression
+    scores = analyzer.polarity_scores(text)
+    compound = scores['compound']
+    
+    if compound >= 0.05:
+        prediction = 'Positive'
+    elif compound <= -0.05:
+        prediction = 'Negative'
+    else:
+        prediction = 'Neutral'
 
     return {"sentiment": prediction}
 

@@ -48,16 +48,54 @@ const ReviewSection = ({ productId }) => {
       </form>
 
       {/* Reviews List */}
-      <div className="space-y-4">
-        {reviews.map((rev) => (
-          <div key={rev._id} className="p-4 border-b">
-            <div className="flex justify-between">
-              <span className="font-semibold">{rev.userName}</span>
-              <span className="text-yellow-500">{"★".repeat(rev.rating)}</span>
-            </div>
-            <p className="text-gray-700">{rev.comment}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h4 className="text-lg font-semibold mb-3 text-green-600">Positive Reviews</h4>
+          <div className="space-y-4">
+            {reviews.filter(r => r.sentiment === 'Positive').map((rev) => (
+              <div key={rev._id} className="p-4 border rounded bg-green-50 shadow-sm">
+                <div className="flex justify-between">
+                  <span className="font-semibold">{rev.userName}</span>
+                  <span className="text-yellow-500">{"★".repeat(rev.rating)}</span>
+                </div>
+                <p className="text-gray-700 mt-2">{rev.comment}</p>
+              </div>
+            ))}
+            {reviews.filter(r => r.sentiment === 'Positive').length === 0 && <p className="text-sm text-gray-500">No positive reviews yet.</p>}
           </div>
-        ))}
+        </div>
+
+        <div>
+          <h4 className="text-lg font-semibold mb-3 text-gray-600">Neutral Reviews</h4>
+          <div className="space-y-4">
+            {reviews.filter(r => r.sentiment === 'Neutral').map((rev) => (
+              <div key={rev._id} className="p-4 border rounded bg-gray-50 shadow-sm">
+                <div className="flex justify-between">
+                  <span className="font-semibold">{rev.userName}</span>
+                  <span className="text-yellow-500">{"★".repeat(rev.rating)}</span>
+                </div>
+                <p className="text-gray-700 mt-2">{rev.comment}</p>
+              </div>
+            ))}
+            {reviews.filter(r => r.sentiment === 'Neutral').length === 0 && <p className="text-sm text-gray-500">No neutral reviews yet.</p>}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-lg font-semibold mb-3 text-red-600">Negative Reviews</h4>
+          <div className="space-y-4">
+            {reviews.filter(r => r.sentiment === 'Negative').map((rev) => (
+              <div key={rev._id} className="p-4 border rounded bg-red-50 shadow-sm">
+                <div className="flex justify-between">
+                  <span className="font-semibold">{rev.userName}</span>
+                  <span className="text-yellow-500">{"★".repeat(rev.rating)}</span>
+                </div>
+                <p className="text-gray-700 mt-2">{rev.comment}</p>
+              </div>
+            ))}
+            {reviews.filter(r => r.sentiment === 'Negative').length === 0 && <p className="text-sm text-gray-500">No negative reviews yet.</p>}
+          </div>
+        </div>
       </div>
     </div>
   );

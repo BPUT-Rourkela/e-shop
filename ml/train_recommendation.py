@@ -5,8 +5,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import os
 
 # Set paths
-DATA_PATH = r"c:\Users\saira\OneDrive\Documents\persoal-pro\ecom-platform\amazon.csv"
-SAVE_DIR = r"c:\Users\saira\OneDrive\Documents\persoal-pro\ecom-platform\ml\recommendation_models"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(os.path.dirname(BASE_DIR), "amazon.csv")
+SAVE_DIR = os.path.join(BASE_DIR, "recommendation_models")
 
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)

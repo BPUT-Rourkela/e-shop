@@ -7,10 +7,26 @@ const { verifyToken, isAdmin } = require('../middleware/auth');
 router.post('/add', verifyToken, async (req, res) => {
   try {
     const { productId, rating, comment } = req.body;
-    // Basic sentiment: positive if rating >= 4, negative if <= 2, neutral otherwise
-    let sentiment = 'Neutral';
-    if (rating >= 4) sentiment = 'Positive';
-    else if (rating <= 2) sentiment = 'Negative';
+    
+    let sentiment = 'Neutral'; // Default in case ML is completely down
+    
+    try {
+      const axios = require('axios');
+      const ML_API_URL = process.env.ML_API_URL || 'http://127.0.0.1:8000';
+      
+      // Fetch the sentiment purely via the ML API
+      const mlResponse = await axios.post(`${ML_API_URL}/analyze_sentiment`, { text: comment });
+      
+      if (mlResponse.data && mlResponse.data.sentiment) {
+        // Use the exact category provided by the ML model ('Positive', 'Negative', or 'Neutral')
+        let sentStr = mlResponse.data.sentiment;
+        if (typeof sentStr === 'string' && sentStr.trim() !== '') {
+           sentiment = sentStr;
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching sentiment from ML API:', err.message);
+    }
 
     const newReview = new Review({
       product: productId,
