@@ -27,6 +27,20 @@ exports.getRecommendations = async (req, res) => {
     }
 };
 
+exports.searchProducts = async (req, res) => {
+    try {
+        const { query } = req.body;
+        if (!query) {
+            return res.status(400).json({ message: 'query is required' });
+        }
+        const response = await axios.post(`${ML_API_URL}/search`, { query });
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error('Error performing semantic search:', error.message);
+        res.status(500).json({ message: 'Error connecting to ML Service for Search' });
+    }
+};
+
 exports.analyzeSentiment = async (req, res) => {
     try {
         const { text } = req.body;

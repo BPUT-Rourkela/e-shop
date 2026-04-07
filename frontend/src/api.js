@@ -71,5 +71,6 @@ export const fetchAdminReviews = () => API.get('/admin/reviews');
 
 // ---- ML ----
 export const fetchMLRecommendations = (product_texts) => API.post('/ml/recommend', { product_texts });
+export const fetchMLSearch = (query) => API.post('/ml/search', { query });
 
 export default API;

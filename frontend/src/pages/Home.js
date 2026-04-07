@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { fetchProducts, fetchTrendingProducts, fetchMLRecommendations, createOrder, fetchUserOrders } from '../api';
+import React, { useEffect, useState } from 'react';
+import { fetchProducts, fetchTrendingProducts, fetchMLRecommendations, fetchMLSearch } from '../api';
 import {
   ShoppingCart, Award, Shield, Truck, Search, Heart,
   TrendingUp, Star, Monitor, Coffee, Home as HomeIcon, Mouse,
@@ -223,6 +223,7 @@ const Home = () => {
   const [loadingML, setLoadingML] = useState(false);
   const [recommendedForSearch, setRecommendedForSearch] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
+  const [semanticSearchResults, setSemanticSearchResults] = useState([]);
   // Always read live from localStorage so re-logins are detected without page refresh
   const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
   const [searchParams] = useSearchParams();
@@ -344,33 +345,27 @@ const Home = () => {
 
   // ---- Search-based ML recommendations ----
   useEffect(() => {
-    if (!searchQuery || products.length === 0) {
+    if (!searchQuery) {
+      setSemanticSearchResults([]);
       setRecommendedForSearch([]);
       return;
     }
-    const q = searchQuery.toLowerCase();
-    const filtered = products.filter(p =>
-      p.name?.toLowerCase().includes(q) ||
-      p.category?.toLowerCase().includes(q)
-    );
-    if (filtered.length > 0) {
-      setLoadingSearch(true);
-      const texts = filtered
-        .slice(0, 3)
-        .map(p => `${p.name || ''} ${p.description || ''}`.trim())
-        .filter(t => t.length > 0);
-      if (texts.length > 0) {
-        fetchMLRecommendations(texts)
-          .then(res => setRecommendedForSearch(res.data.recommendations || []))
-          .catch(err => console.error(err))
-          .finally(() => setLoadingSearch(false));
-      } else {
-        setLoadingSearch(false);
-      }
-    } else {
-      setRecommendedForSearch([]);
-    }
-  }, [searchQuery, products]);
+    
+    setLoadingSearch(true);
+    fetchMLSearch(searchQuery)
+      .then(res => {
+         setSemanticSearchResults(res.data.results || []);
+         // We can clear recommendedForSearch since Semantic Search natively finds the best matches
+         setRecommendedForSearch([]);
+      })
+      .catch(err => {
+         console.error("Semantic search failed:", err);
+         setSemanticSearchResults([]);
+      })
+      .finally(() => {
+         setLoadingSearch(false);
+      });
+  }, [searchQuery]);
 
   // ---- Cart handlers ----
   const handleAddToCart = async (product) => {
@@ -499,13 +494,23 @@ const Home = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
         </div>
       ) : searchQuery ? (
-        /* ── SEARCH RESULTS ── */
+        /* ── SEMANTIC SEARCH RESULTS ── */
         <div className="max-w-7xl mx-auto px-6 pb-20">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Results for "{searchQuery}"</h2>
-            <p className="text-gray-500 mt-1 text-sm">{filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found</p>
+            <h2 className="text-3xl font-bold text-gray-900">Semantic Results for "{searchQuery}"</h2>
+            {!loadingSearch && (
+              <p className="text-gray-500 mt-1 text-sm">
+                {semanticSearchResults.length} AI-matched product{semanticSearchResults.length !== 1 ? 's' : ''} found
+              </p>
+            )}
           </div>
-          {filteredProducts.length === 0 ? (
+          
+          {loadingSearch ? (
+            <div className="flex justify-center items-center py-20 gap-4 text-indigo-600">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+               <p className="font-semibold text-lg">AI Semantic Search is thinking...</p>
+            </div>
+          ) : semanticSearchResults.length === 0 ? (
             <div className="bg-white rounded-3xl p-16 text-center shadow-sm border border-gray-100 flex flex-col items-center">
               <div className="bg-indigo-50 p-6 rounded-full mb-6 text-indigo-300"><Search size={64} /></div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">No results for "{searchQuery}"</h3>
@@ -513,11 +518,18 @@ const Home = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              {filteredProducts.map(p => <ProductCard key={p._id} product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />)}
+              {semanticSearchResults.map(p => (
+                <ProductCard 
+                  key={p._id || p.product_id} 
+                  product={{ ...p, _id: p._id || p.product_id }} 
+                  onAddToCart={handleAddToCart} 
+                  onToggleWishlist={handleToggleWishlist} 
+                />
+              ))}
             </div>
           )}
 
-          {/* ML Recommendations based on search */}
+          {/* ML Recommendations based on search (Now covered by Semantic Search, but keeping logic if needed) */}
           {filteredProducts.length > 0 && (
             <div className="mt-12 border-t border-gray-100 pt-12">
               <div className="flex items-center gap-3 mb-8">

@@ -10,6 +10,7 @@ import string
 from typing import List, Optional
 
 from contextlib import asynccontextmanager
+from sentence_transformers import SentenceTransformer
 
 # Paths to models
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,15 +24,28 @@ products_df = None
 sent_tfidf = None
 sent_model = None
 
+# New global variables for search
+search_model = None
+search_embeddings = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global rec_tfidf, rec_matrix, products_df, sent_tfidf, sent_model
+    global rec_tfidf, rec_matrix, products_df, sent_tfidf, sent_model, search_model, search_embeddings
     try:
         rec_tfidf = joblib.load(os.path.join(REC_MODEL_DIR, "tfidf_vectorizer.pkl"))
         rec_matrix = joblib.load(os.path.join(REC_MODEL_DIR, "tfidf_matrix.pkl"))
         products_df = joblib.load(os.path.join(REC_MODEL_DIR, "products_dataframe.pkl"))
         sent_tfidf = joblib.load(os.path.join(SENT_MODEL_DIR, "sentiment_vectorizer.pkl"))
         sent_model = joblib.load(os.path.join(SENT_MODEL_DIR, "sentiment_model.pkl"))
+        
+        try:
+            # Load the search embeddings and the transformer model
+            search_embeddings = joblib.load(os.path.join(REC_MODEL_DIR, "sentence_embeddings.pkl"))
+            search_model = SentenceTransformer('all-MiniLM-L6-v2')
+            print("Semantic Search Model and Embeddings loaded successfully!")
+        except Exception as se:
+            print(f"Warning: Could not load search embeddings. Run train_search.py first. Error: {se}")
+
         print("Models loaded successfully!")
     except Exception as e:
         print(f"Error loading models: {e}")
@@ -63,6 +77,9 @@ class RecommendRequest(BaseModel):
 
 class SentimentRequest(BaseModel):
     text: str
+
+class SearchRequest(BaseModel):
+    query: str
 
 
 @app.get("/")
@@ -145,6 +162,50 @@ def recommend(request: RecommendRequest):
                     break
 
     return {"recommendations": recommendations}
+
+@app.post("/search")
+def search(request: SearchRequest):
+    if products_df is None or search_model is None or search_embeddings is None:
+        raise HTTPException(status_code=500, detail="Search models not loaded. Please run train_search.py")
+
+    query = request.query.strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query cannot be empty")
+
+    # Encode the search query using SentenceTransformer
+    query_vector = search_model.encode([query])
+
+    # Calculate cosine similarity with all products
+    similarity_scores = cosine_similarity(query_vector, search_embeddings)[0]
+
+    # Get the indices of the top 30 most similar products
+    top_indices = similarity_scores.argsort()[::-1][:30]
+
+    results = []
+    seen_ids = set()
+    for idx in top_indices:
+        product_id = str(products_df.iloc[idx]['product_id'])
+        if product_id in seen_ids:
+            continue
+        seen_ids.add(product_id)
+
+        row = products_df.iloc[idx]
+        results.append({
+            "product_id": product_id,
+            "name": str(row['product_name']),
+            "category": str(row['category']),
+            "image": clean_amazon_image_url(row['img_link']),
+            "product_link": str(row['product_link']),
+            "rating": float(row['rating']) if not pd.isna(row['rating']) else 0.0,
+            "price": float(row['discounted_price']) if not pd.isna(row['discounted_price']) else 0.0,
+            "actual_price": float(row['actual_price']) if not pd.isna(row['actual_price']) else 0.0,
+            "description": str(row.get('about_product', ''))[:200],
+            "score": float(similarity_scores[idx])
+        })
+        if len(results) >= 20: 
+            break
+
+    return {"results": results}
 
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
