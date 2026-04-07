@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchProducts, fetchTrendingProducts, fetchMLRecommendations, fetchMLSearch } from '../api';
+import { fetchProducts, fetchTrendingProducts, fetchMLRecommendations, fetchMLSearch, fetchUserOrders } from '../api';
 import {
   ShoppingCart, Award, Shield, Truck, Search, Heart,
   TrendingUp, Star, Monitor, Coffee, Home as HomeIcon, Mouse,
