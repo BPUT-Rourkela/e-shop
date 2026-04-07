@@ -55,7 +55,7 @@ const SentimentBadge = ({ sentiment }) => {
 const OverviewTab = ({ stats, analytics }) => {
   if (!stats || !analytics) return <div className="flex justify-center py-20"><div className="animate-spin h-10 w-10 rounded-full border-b-2 border-indigo-600"></div></div>;
   const cards = [
-    { label: 'Total Revenue', value: `$${stats.totalRevenue?.toFixed(2) || '0.00'}`, color: 'from-indigo-500 to-purple-600' },
+    { label: 'Total Revenue', value: `₹${stats.totalRevenue?.toFixed(2) || '0.00'}`, color: 'from-indigo-500 to-purple-600' },
     { label: 'Total Orders', value: stats.totalOrders || 0, color: 'from-teal-500 to-emerald-600' },
     { label: 'Customers', value: stats.totalUsers || 0, color: 'from-amber-500 to-orange-600' },
     { label: 'Products', value: stats.totalProducts || 0, color: 'from-pink-500 to-rose-600' },
@@ -92,7 +92,7 @@ const OverviewTab = ({ stats, analytics }) => {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="_id" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v) => [`$${v.toFixed(2)}`, 'Revenue']} />
+              <Tooltip formatter={(v) => [`₹${v.toFixed(2)}`, 'Revenue']} />
               <Bar dataKey="revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -123,7 +123,7 @@ const OverviewTab = ({ stats, analytics }) => {
               <span className="flex-grow font-medium text-gray-800">{p.name}</span>
               <div className="text-right">
                 <p className="font-bold text-indigo-700">{p.totalSold} sold</p>
-                <p className="text-xs text-gray-400">${p.price} each</p>
+                <p className="text-xs text-gray-400">₹{p.price} each</p>
               </div>
               <div className="w-32 bg-gray-100 rounded-full h-2">
                 <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${Math.min(100, (p.totalSold / (analytics.topProducts[0]?.totalSold || 1)) * 100)}%` }} />
@@ -170,7 +170,7 @@ const OrdersTab = ({ orders, setOrders }) => {
                     <div className="font-medium text-gray-800">{o.user?.name || 'N/A'}</div>
                     <div className="text-gray-400 text-xs">{o.user?.email}</div>
                   </td>
-                  <td className="px-4 py-3 font-bold text-indigo-700">${o.totalAmount?.toFixed(2)}</td>
+                  <td className="px-4 py-3 font-bold text-indigo-700">₹{o.totalAmount?.toFixed(2)}</td>
                   <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                   <td className="px-4 py-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
@@ -193,7 +193,7 @@ const OrdersTab = ({ orders, setOrders }) => {
                             <img src={item.product?.image || 'https://via.placeholder.com/40'} alt="" className="h-10 w-10 rounded-lg object-cover" />
                             <span className="font-medium">{item.product?.name}</span>
                             <span className="text-gray-500">x{item.quantity}</span>
-                            <span className="font-bold text-indigo-700">${item.product?.price}</span>
+                            <span className="font-bold text-indigo-700">₹{item.product?.price}</span>
                           </div>
                         ))}
                       </div>
@@ -237,7 +237,7 @@ const CustomersTab = ({ customers }) => {
               </div>
               <div className="ml-auto text-right">
                 <p className="text-xs font-bold text-indigo-600">{c.orderCount} orders</p>
-                <p className="text-xs text-gray-400">${c.totalSpend?.toFixed(2)}</p>
+                <p className="text-xs text-gray-400">₹{c.totalSpend?.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -254,7 +254,7 @@ const CustomersTab = ({ customers }) => {
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-mono text-xs text-gray-400">#{o._id?.slice(-8)}</span>
                   <StatusBadge status={o.status} />
-                  <span className="font-bold text-indigo-700">${o.totalAmount?.toFixed(2)}</span>
+                  <span className="font-bold text-indigo-700">₹{o.totalAmount?.toFixed(2)}</span>
                   <span className="text-xs text-gray-400">{new Date(o.createdAt).toLocaleDateString()}</span>
                 </div>
                 {o.products?.map((item, i) => (
@@ -296,7 +296,7 @@ const TransactionsTab = ({ transactions }) => (
                 <div className="font-medium">{t.user?.name || 'N/A'}</div>
                 <div className="text-xs text-gray-400">{t.user?.email}</div>
               </td>
-              <td className="px-4 py-3 font-bold text-indigo-700">${t.totalAmount?.toFixed(2)}</td>
+              <td className="px-4 py-3 font-bold text-indigo-700">₹{t.totalAmount?.toFixed(2)}</td>
               <td className="px-4 py-3"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">{t.paymentMethod}</span></td>
               <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
               <td className="px-4 py-3 text-gray-500">{new Date(t.createdAt).toLocaleDateString()}</td>
@@ -349,7 +349,7 @@ const ProductsTab = ({ products, setProducts }) => {
             {[
               { name: 'name', placeholder: 'Product Name' },
               { name: 'category', placeholder: 'Category' },
-              { name: 'price', placeholder: 'Price ($)', type: 'number' },
+              { name: 'price', placeholder: 'Price (₹)', type: 'number' },
               { name: 'image', placeholder: 'Image URL (optional)' },
             ].map(f => (
               <input key={f.name} type={f.type || 'text'} name={f.name} placeholder={f.placeholder}
@@ -384,7 +384,7 @@ const ProductsTab = ({ products, setProducts }) => {
               <img src={p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=60&q=80'} alt={p.name} className="h-14 w-14 rounded-lg object-cover flex-shrink-0" />
               <div className="flex-grow min-w-0">
                 <p className="font-bold text-gray-800 truncate">{p.name}</p>
-                <p className="text-indigo-700 font-bold text-sm">${p.price}</p>
+                <p className="text-indigo-700 font-bold text-sm">₹{p.price}</p>
                 <p className="text-xs text-gray-400">{p.category} • {p.purchaseCount || 0} sold</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">

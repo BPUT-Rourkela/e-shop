@@ -40,7 +40,7 @@ const Wishlist = ({ wishlist, refreshProfile }) => {
               </div>
               <div className="p-5">
                 <h4 className="font-bold text-gray-900 mb-1 truncate">{product.name}</h4>
-                <div className="text-lg font-bold text-indigo-600 mb-4">${product.price}</div>
+                <div className="text-lg font-bold text-indigo-600 mb-4">₹{product.price}</div>
                 <button className="w-full bg-indigo-50 text-indigo-700 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-indigo-600 hover:text-white transition-colors">
                   <ShoppingCart size={18} /> Add to Cart
                 </button>

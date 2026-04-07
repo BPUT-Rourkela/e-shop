@@ -76,7 +76,7 @@ const Cart = ({ cartItems, addresses = [], refreshProfile }) => {
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h2>
         <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6">
-          <p className="font-bold text-indigo-800">Total Amount: ${totalAmount.toFixed(2)}</p>
+          <p className="font-bold text-indigo-800">Total Amount: ₹{totalAmount.toFixed(2)}</p>
         </div>
 
         {step === 1 && (
@@ -180,7 +180,7 @@ const Cart = ({ cartItems, addresses = [], refreshProfile }) => {
               disabled={!paymentMethod || (paymentMethod === 'Credit Card' && (!ccDetails.number || !ccDetails.expiry || !ccDetails.cvv))}
               className="w-full bg-[#0d1b2a] text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition mt-6 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
             >
-              <ShoppingCart size={20} /> Place Order • ${totalAmount.toFixed(2)}
+              <ShoppingCart size={20} /> Place Order • ₹{totalAmount.toFixed(2)}
             </button>
 
             <button onClick={() => setStep(1)} className="w-full text-center text-gray-500 py-2 hover:text-gray-800 text-sm mt-2">
@@ -207,7 +207,7 @@ const Cart = ({ cartItems, addresses = [], refreshProfile }) => {
             <img src={item.image || 'https://via.placeholder.com/100'} alt={item.name} className="w-24 h-24 object-contain rounded-lg bg-white p-2" />
             <div className="flex-grow text-center sm:text-left">
               <h3 className="font-bold text-gray-800 leading-tight mb-1">{item.name}</h3>
-              <p className="text-indigo-600 font-extrabold">${item.price}</p>
+              <p className="text-indigo-600 font-extrabold">₹{item.price}</p>
               <p className="text-xs text-gray-500 mt-2">Qty: {item.quantity}</p>
             </div>
             <button onClick={() => handleRemove(item.product)} className="absolute top-4 right-4 sm:relative sm:top-0 sm:right-0 opacity-100 sm:opacity-50 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity" title="Remove Item">
@@ -220,7 +220,7 @@ const Cart = ({ cartItems, addresses = [], refreshProfile }) => {
       <div className="border-t border-gray-100 pt-6">
         <div className="flex justify-between items-center mb-6">
           <span className="text-gray-500 text-lg">Total Items: {cartItems.reduce((acc, i) => acc + i.quantity, 0)}</span>
-          <span className="text-3xl font-black text-slate-800">${totalAmount.toFixed(2)}</span>
+          <span className="text-3xl font-black text-slate-800">₹{totalAmount.toFixed(2)}</span>
         </div>
         <button onClick={startCheckout} className="w-full bg-[#0d1b2a] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#1b2b40] transition shadow-lg shadow-[#0d1b2a]/20 flex items-center justify-center gap-3">
           <ShoppingCart size={22} /> Proceed to Checkout

@@ -67,13 +67,13 @@ const MyOrders = () => {
                       <h5 className="font-bold text-gray-900">{item.product?.name || 'Product Details'}</h5>
                       <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                     </div>
-                    <div className="font-bold text-gray-900">${(item.product?.price * item.quantity).toFixed(2) || '0.00'}</div>
+                    <div className="font-bold text-gray-900">₹{(item.product?.price * item.quantity).toFixed(2) || '0.00'}</div>
                   </div>
                 ))}
               </div>
               
               <div className="flex justify-between items-center border-t border-gray-100 pt-4 mt-4">
-                <div className="text-lg font-bold text-gray-900">Total: <span className="text-indigo-600">${order.totalAmount || '0.00'}</span></div>
+                <div className="text-lg font-bold text-gray-900">Total: <span className="text-indigo-600">₹{order.totalAmount || '0.00'}</span></div>
                 <button className="flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition-colors">
                   View Details <ArrowRight size={16} />
                 </button>

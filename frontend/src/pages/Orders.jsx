@@ -18,7 +18,7 @@ const Orders = () => {
             <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
           </div>
           <div className="text-right">
-            <p className="font-bold text-green-600">${order.totalAmount}</p>
+            <p className="font-bold text-green-600">₹{order.totalAmount}</p>
             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{order.status}</span>
           </div>
         </div>
