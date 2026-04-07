@@ -240,7 +240,7 @@ const ProductDetails = () => {
 
         {/* ── Right Column: Details ── */}
         <div className="flex flex-col">
-          <h1 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight mb-4 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight mb-4 tracking-tight">
             {product.name}
           </h1>
           
@@ -254,7 +254,7 @@ const ProductDetails = () => {
           </div>
 
           <div className="text-5xl font-black text-indigo-600 mb-8 tracking-tighter">
-            ${product.price}
+            ₹{product.price}
           </div>
 
           <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mb-8">
@@ -299,7 +299,7 @@ const ProductDetails = () => {
                 <img src={product.image || FALLBACK_IMG} alt="" className="w-16 h-16 object-contain mix-blend-multiply bg-white rounded-xl p-1" />
                 <div className="flex-grow">
                   <h4 className="font-bold text-sm text-gray-800 line-clamp-1">{product.name}</h4>
-                  <p className="text-xl font-black text-indigo-600">${product.price}</p>
+                  <p className="text-xl font-black text-indigo-600">₹{product.price}</p>
                 </div>
               </div>
 
@@ -404,7 +404,7 @@ const ProductDetails = () => {
                       disabled={!paymentMethod || buying || (paymentMethod === 'Credit Card' && (!ccDetails.number || !ccDetails.expiry || !ccDetails.cvv))}
                       className="w-2/3 bg-[#0d1b2a] text-white py-4 rounded-xl font-bold hover:bg-indigo-600 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                     >
-                      {buying ? 'Processing...' : `Confirm & Pay $${product.price}`}
+                      {buying ? 'Processing...' : `Confirm & Pay ₹${product.price}`}
                     </button>
                   </div>
                 </div>

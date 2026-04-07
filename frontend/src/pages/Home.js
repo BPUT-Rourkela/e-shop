@@ -12,6 +12,28 @@ import { useSearchParams, Link } from 'react-router-dom';
 ───────────────────────────────────────────── */
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
 
+/* ─────────────────────────────────────────────
+   SMART CATEGORY UTILS
+───────────────────────────────────────────── */
+export const predefinedCategories = [
+  { id: 'tv-audio', title: 'Tv, Audio & Cameras', keywords: ['tv', 'television', 'audio', 'camera', 'speaker', 'headphone', 'earphone', 'airpods', 'bass', 'sound'] },
+  { id: 'laptops', title: 'Laptops & Computers', keywords: ['laptop', 'macbook', 'mouse', 'keyboard', 'desktop', 'monitor', 'router', 'drive', 'usb'] },
+  { id: 'mobiles', title: 'Mobiles & Smartwatches', keywords: ['mobile', 'phone', 'iphone', 'samsung galaxy', 'smartwatch', 'watch', 'charger', 'cover', 'adapter', 'cable'] },
+  { id: 'home', title: 'Home & Kitchen', keywords: ['home', 'kitchen', 'appliance', 'iron', 'vacuum', 'water', 'table', 'decor', 'bottle'] },
+  { id: 'stationery', title: 'Office, Stationery & Bags', keywords: ['pen', 'pencil', 'office', 'bag', 'backpack', 'book', 'paper', 'stationery', 'desk'] },
+  { id: 'gaming', title: 'Gaming & Accessories', keywords: ['game', 'gaming', 'ps4', 'ps5', 'xbox', 'nintendo', 'gamepad', 'joystick'] },
+];
+
+export const getSmartCategory = (product) => {
+  const nameLower = (product.name || '').toLowerCase();
+  for (const cat of predefinedCategories) {
+    if (cat.keywords.some(kw => nameLower.includes(kw))) {
+      return cat.title;
+    }
+  }
+  return 'Other Accessories';
+};
+
 const ProductCard = ({ product, onAddToCart, onToggleWishlist, badge }) => (
   <Link 
     to={`/product/${product._id}`}
@@ -31,10 +53,12 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, badge }) => (
     </div>
     <div className="p-5 flex flex-col flex-grow">
       <h3 className="text-sm font-bold mb-1 text-gray-800 line-clamp-2" title={product.name}>{product.name}</h3>
-      <p className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mb-2">{product.category}</p>
-      <p className="text-gray-500 text-xs mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
+      <p className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mb-2">{getSmartCategory(product)}</p>
+      <p className="text-gray-500 text-xs mb-4 line-clamp-2 leading-relaxed">
+        {product.description?.startsWith('Category: ') ? '' : product.description}
+      </p>
       <div className="flex justify-between items-end mt-auto pt-4 relative z-10">
-        <span className="text-2xl font-black text-slate-800">${product.price}</span>
+        <span className="text-2xl font-black text-slate-800">₹{product.price}</span>
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => {
@@ -217,14 +241,39 @@ const Home = () => {
     };
   }, []);
 
-  // ---- Category helpers ----
-  const getTopProducts = useCallback((items, keywords) =>
-    items
-      .filter(p => keywords.some(kw => p.category?.toLowerCase().includes(kw)))
-      .sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0))
-      .slice(0, 15),
-    []
-  );
+  const categoriesWithProducts = React.useMemo(() => {
+    // Since all DB products have the exact same category, we use smart keyword matching on names.
+    const categoryMap = new Map();
+    predefinedCategories.forEach(cat => categoryMap.set(cat.title, []));
+    categoryMap.set('Other Accessories', []);
+
+    products.forEach(p => {
+      const catTitle = getSmartCategory(p);
+      categoryMap.get(catTitle).push(p);
+    });
+
+    const result = [];
+    for (const [catName, items] of categoryMap.entries()) {
+      const topItems = items
+        .sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0))
+        .slice(0, 15);
+      if (topItems.length > 0) {
+        result.push({ category: catName, items: topItems });
+      }
+    }
+    
+    // Sort so categories with most matching items show first, but keep "Other" at the bottom
+    result.sort((a, b) => {
+      if (a.category === 'Other Accessories') return 1;
+      if (b.category === 'Other Accessories') return -1;
+      return b.items.length - a.items.length;
+    });
+    
+    return result;
+  }, [products]);
+
+  const categoryIcons = [Monitor, Coffee, HomeIcon, Mouse, Award, Zap, Star, Shield];
+  const categoryColors = ['blue', 'orange', 'teal', 'purple', 'amber', 'rose', 'fuchsia', 'emerald'];
 
   // ---- Load initial data ----
   useEffect(() => {
@@ -371,10 +420,7 @@ const Home = () => {
     );
   });
 
-  const electronics        = getTopProducts(products, ['electronic']);
-  const kitchen            = getTopProducts(products, ['kitchen', 'kichine']);
-  const homeItems          = getTopProducts(products, ['home']);
-  const computerAccessories = getTopProducts(products, ['computer', 'accessories', 'acessories']);
+
 
   // Show AI banner when: logged in AND (loading ML OR has recs)
   const showAISection = isLoggedIn && (loadingML || mlRecommended.length > 0);
@@ -423,7 +469,7 @@ const Home = () => {
               <div className="bg-indigo-500/20 p-3 rounded-xl text-indigo-300 group-hover:scale-110 transition-transform"><Truck size={24} /></div>
               <div>
                 <h4 className="font-bold text-lg text-white">Fast Delivery</h4>
-                <p className="text-sm text-indigo-200/60 font-medium">Free shipping on orders over $50</p>
+                <p className="text-sm text-indigo-200/60 font-medium">Free shipping on orders over ₹50</p>
               </div>
             </div>
             <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-2xl transition hover:bg-white/15 group">
@@ -533,61 +579,25 @@ const Home = () => {
             </section>
           )}
 
-          {/* ── Best Sellers: Electronics ── */}
-          {electronics.length > 0 && (
-            <section>
-              <SectionHeader icon={Monitor} title="Best Sellers: Electronics" color="blue" />
-              <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
-                {electronics.map(p => (
-                  <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* ── Dynamic Category Rows ── */}
+          {categoriesWithProducts.map(({ category, items }, index) => {
+            const Icon = categoryIcons[index % categoryIcons.length];
+            const color = categoryColors[index % categoryColors.length];
+            const title = category;
 
-          {/* ── Best Selling: Kitchen ── */}
-          {kitchen.length > 0 && (
-            <section>
-              <SectionHeader icon={Coffee} title="Best Selling: Kitchen" color="orange" />
-              <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
-                {kitchen.map(p => (
-                  <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── Top Home Items ── */}
-          {homeItems.length > 0 && (
-            <section>
-              <SectionHeader icon={HomeIcon} title="Top Home Items" color="teal" />
-              <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
-                {homeItems.map(p => (
-                  <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── Best Selling: Computer Accessories ── */}
-          {computerAccessories.length > 0 && (
-            <section>
-              <SectionHeader icon={Mouse} title="Best Selling: Computer Accessories" color="purple" />
-              <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
-                {computerAccessories.map(p => (
-                  <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
-                    <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+            return (
+              <section key={category}>
+                <SectionHeader icon={Icon} title={title} color={color} />
+                <div className="flex overflow-x-auto gap-6 pb-6 snap-x" style={{ scrollbarWidth: 'none' }}>
+                  {items.map(p => (
+                    <div key={p._id} className="w-[260px] sm:w-[280px] snap-start shrink-0">
+                      <ProductCard product={p} onAddToCart={handleAddToCart} onToggleWishlist={handleToggleWishlist} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
 
         </div>
       )}

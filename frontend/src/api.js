@@ -10,6 +10,18 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
+// Handle 401 unauthorized errors globally
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.dispatchEvent(new Event('authChange'));
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ---- AUTH ----
 export const login = (formData) => API.post('/auth/login', formData);
 export const register = (formData) => API.post('/auth/register', formData);
