@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -15,7 +15,7 @@ import {
   Star, Trash2, Edit3, 
   ThumbsUp, ThumbsDown, Minus, RefreshCw,LogOut
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 const COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
 
@@ -402,63 +402,233 @@ const ProductsTab = ({ products, setProducts }) => {
 
 // ========== REVIEWS TAB ==========
 const ReviewsTab = ({ reviews, setReviews }) => {
+  const [groupMode, setGroupMode] = useState('flat'); // 'flat', 'product', 'user'
+
   const handleSentiment = async (id, sentiment) => {
     try {
       const { data } = await updateReviewSentiment(id, sentiment);
       setReviews(prev => prev.map(r => r._id === id ? data : r));
     } catch { alert('Failed to update sentiment.'); }
   };
+
   const positive = reviews.filter(r => r.sentiment === 'Positive').length;
   const negative = reviews.filter(r => r.sentiment === 'Negative').length;
   const neutral = reviews.filter(r => r.sentiment === 'Neutral').length;
 
-  return (
-    <div>
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-green-600">{positive}</p>
-          <p className="text-sm font-medium text-green-700">Positive</p>
+  const groupedByProduct = useMemo(() => {
+    const groups = {};
+    reviews.forEach(r => {
+      const pId = r.product?._id || r.product;
+      const key = typeof pId === 'object' ? pId.toString() : pId;
+      if (!groups[key]) {
+        groups[key] = {
+          product: r.product,
+          reviews: [],
+          counts: { Positive: 0, Negative: 0, Neutral: 0 }
+        };
+      }
+      groups[key].reviews.push(r);
+      if (groups[key].counts[r.sentiment] !== undefined) groups[key].counts[r.sentiment]++;
+    });
+    return Object.values(groups).sort((a, b) => b.reviews.length - a.reviews.length);
+  }, [reviews]);
+
+  const groupedByUser = useMemo(() => {
+    const groups = {};
+    reviews.forEach(r => {
+      const uId = r.user?._id || r.user || 'anonymous';
+      const key = uId.toString();
+      if (!groups[key]) {
+        groups[key] = {
+          user: r.user,
+          userName: r.user?.name || r.userName || 'Anonymous',
+          reviews: [],
+          counts: { Positive: 0, Negative: 0, Neutral: 0 }
+        };
+      }
+      groups[key].reviews.push(r);
+      if (groups[key].counts[r.sentiment] !== undefined) groups[key].counts[r.sentiment]++;
+    });
+    return Object.values(groups).sort((a, b) => b.reviews.length - a.reviews.length);
+  }, [reviews]);
+
+  const ReviewItem = ({ r }) => (
+    <div key={r._id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start">
+        <div className="flex-grow">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+              {(r.user?.name || r.userName || '?').charAt(0).toUpperCase()}
+            </div>
+            <span className="font-bold text-gray-800 text-sm">{r.user?.name || r.userName}</span>
+            <span className="text-yellow-500 text-xs">{'⭐'.repeat(r.rating)}</span>
+            <span className="text-[10px] text-gray-400 font-medium bg-gray-50 px-2 py-0.5 rounded-full">{new Date(r.createdAt).toLocaleDateString()}</span>
+          </div>
+          
+          <div className="mb-2">
+            {r.product ? (
+              <Link to={`/product/${r.product?._id || r.product}`} className="group flex items-center gap-2 text-xs">
+                <span className="text-gray-400">on</span>
+                <span className="text-indigo-600 font-bold group-hover:underline underline-offset-2">
+                  {r.product?.name || "View Product"}
+                </span>
+                {r.product?.image && (
+                  <img src={r.product.image} alt="" className="h-5 w-5 rounded object-cover border border-gray-100 shadow-sm" />
+                )}
+              </Link>
+            ) : (
+             <span className="text-[10px] text-gray-400 italic">Product details unavailable</span>
+            )}
+          </div>
+
+          <p className="text-gray-700 text-sm leading-relaxed">{r.comment}</p>
         </div>
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-red-600">{negative}</p>
-          <p className="text-sm font-medium text-red-700">Negative</p>
-        </div>
-        <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-gray-600">{neutral}</p>
-          <p className="text-sm font-medium text-gray-700">Neutral</p>
+        <div className="flex flex-col items-end gap-3 ml-4">
+          <SentimentBadge sentiment={r.sentiment} />
+          <div className="flex gap-1 bg-gray-50 p-1 rounded-lg">
+            {['Positive', 'Neutral', 'Negative'].map(s => (
+              <button
+                key={s}
+                onClick={() => handleSentiment(r._id, s)}
+                className={`text-[10px] px-2 py-1 rounded-md font-bold transition-all ${r.sentiment === s 
+                  ? 'bg-white text-indigo-600 shadow-sm' 
+                  : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-        {reviews.map(r => (
-          <div key={r._id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <div className="flex justify-between items-start">
-              <div className="flex-grow">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-gray-800">{r.user?.name || r.userName}</span>
-                  <span className="text-yellow-500 text-sm">{'⭐'.repeat(r.rating)}</span>
-                  <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
-                </div>
-                <p className="text-sm text-gray-500 mb-2">{r.product?.name && <span className="text-indigo-600 font-medium">re: {r.product.name}</span>}</p>
-                <p className="text-gray-700 text-sm">{r.comment}</p>
-              </div>
-              <div className="flex flex-col items-end gap-2 ml-4">
-                <SentimentBadge sentiment={r.sentiment} />
-                <div className="flex gap-1">
-                  {['Positive', 'Neutral', 'Negative'].map(s => (
-                    <button
-                      key={s}
-                      onClick={() => handleSentiment(r._id, s)}
-                      className={`text-xs px-2 py-1 rounded-lg border transition ${r.sentiment === s ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="grid grid-cols-3 gap-3 flex-grow max-w-xl">
+          {[
+            { label: 'Positive', val: positive, bg: 'bg-green-50', txt: 'text-green-600', border: 'border-green-100' },
+            { label: 'Negative', val: negative, bg: 'bg-red-50', txt: 'text-red-600', border: 'border-red-100' },
+            { label: 'Neutral', val: neutral, bg: 'bg-gray-50', txt: 'text-gray-600', border: 'border-gray-100' },
+          ].map(c => (
+            <div key={c.label} className={`${c.bg} ${c.border} border rounded-2xl p-3 flex items-center justify-between`}>
+              <span className={`text-xs font-bold ${c.txt}`}>{c.label}</span>
+              <span className={`text-xl font-black ${c.txt}`}>{c.val}</span>
             </div>
+          ))}
+        </div>
+
+        <div className="flex bg-gray-100/50 p-1.5 rounded-2xl w-fit border border-gray-100">
+          {[
+            { id: 'flat', label: 'Flat View', icon: Star },
+            { id: 'product', label: 'By Product', icon: Package },
+            { id: 'user', label: 'By User', icon: Users },
+          ].map(m => {
+            const Icon = m.icon;
+            return (
+              <button
+                key={m.id}
+                onClick={() => setGroupMode(m.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${groupMode === m.id 
+                  ? 'bg-white text-indigo-600 shadow-lg shadow-indigo-100' 
+                  : 'text-gray-500 hover:text-gray-800'}`}
+              >
+                <Icon size={14} />
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+        {groupMode === 'flat' && (
+          <div className="space-y-4">
+            {reviews.map(r => <ReviewItem key={r._id} r={r} />)}
+            {reviews.length === 0 && <div className="text-center py-20 text-gray-400 font-medium">No reviews found yet.</div>}
           </div>
-        ))}
-        {reviews.length === 0 && <p className="text-gray-400 text-center py-12">No reviews yet.</p>}
+        )}
+
+        {groupMode === 'product' && (
+          <div className="grid grid-cols-1 gap-8">
+            {groupedByProduct.map(group => (
+              <div key={group.product?._id || group.product} className="space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={group.product?.image || 'https://via.placeholder.com/48'} 
+                      className="w-12 h-12 rounded-xl object-cover border border-gray-100 shadow-sm" 
+                      alt="" 
+                    />
+                    <div>
+                      <h4 className="font-extrabold text-gray-900 leading-tight">
+                        {group.product?.name || "Unknown Product"}
+                      </h4>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        {group.reviews.length} total reviews
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {['Positive', 'Negative', 'Neutral'].map(s => (
+                      <div key={s} className="px-3 py-1.5 bg-gray-50 rounded-lg flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          s === 'Positive' ? 'bg-green-500' : s === 'Negative' ? 'bg-red-500' : 'bg-gray-400'
+                        }`} />
+                        <span className="text-[10px] font-black text-gray-700">{group.counts[s]}</span>
+                      </div>
+                    ))}
+                    <Link 
+                      to={`/product/${group.product?._id || group.product}`}
+                      className="ml-2 bg-indigo-50 text-indigo-600 p-2 rounded-xl hover:bg-indigo-100 transition shadow-sm"
+                    >
+                      <Package size={16} />
+                    </Link>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {group.reviews.map(r => <ReviewItem key={r._id} r={r} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {groupMode === 'user' && (
+          <div className="grid grid-cols-1 gap-8">
+            {groupedByUser.map(group => (
+              <div key={group.user?._id || group.userName} className="space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-lg font-black shadow-lg shadow-indigo-100">
+                      {group.userName.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-gray-900 leading-tight">{group.userName}</h4>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        {group.reviews.length} reviews contributed
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {['Positive', 'Negative', 'Neutral'].map(s => (
+                      <div key={s} className="px-3 py-1.5 bg-gray-50 rounded-lg flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          s === 'Positive' ? 'bg-green-500' : s === 'Negative' ? 'bg-red-500' : 'bg-gray-400'
+                        }`} />
+                        <span className="text-[10px] font-black text-gray-700">{group.counts[s]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {group.reviews.map(r => <ReviewItem key={r._id} r={r} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
